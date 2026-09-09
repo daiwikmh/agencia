@@ -1,0 +1,34 @@
+{
+  "name": "agencia",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pay-per-call AI inference on Hedera, gated by x402 and settled through Blocky402.",
+  "scripts": {
+    "server": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "agent": "tsx src/agent/run.ts",
+    "stream": "tsx scripts/stream.ts",
+    "create-topic": "tsx scripts/create-topic.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.62.0",
+    "@hono/node-server": "^1.13.7",
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@x402/core": "^2.25.0",
+    "@x402/hedera": "^2.25.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.6.14",
+    "openai": "^4.67.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  }
+}

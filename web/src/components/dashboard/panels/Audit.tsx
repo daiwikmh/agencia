@@ -45,7 +45,7 @@ export default function Audit() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    {p.amountTinybar != null && (
+                    {p.amount != null && (
                       <div
                         style={{
                           fontSize: 12.5,
@@ -54,7 +54,7 @@ export default function Audit() {
                           fontWeight: 700,
                         }}
                       >
-                        {fmtHbar(Number(p.amountTinybar) / 1e8)}
+                        {fmtHbar(Number(p.amount) / 1e8)}
                       </div>
                     )}
                     <div style={{ fontSize: 10, color: C.faint, fontFamily: FF_MONO }}>

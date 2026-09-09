@@ -75,12 +75,13 @@ export interface SessionCall {
   txId?: string;
 }
 
-export const TABS = ["overview", "fire", "manifest", "audit", "session"] as const;
+export const TABS = ["overview", "fire", "analytics", "manifest", "audit", "session"] as const;
 export type Tab = (typeof TABS)[number];
 
 export const SECTIONS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "◆" },
   { id: "fire", label: "Fire request", icon: "⚡" },
+  { id: "analytics", label: "Analytics", icon: "▦" },
   { id: "manifest", label: "Service manifest", icon: "≡" },
   { id: "audit", label: "HCS audit trail", icon: "⛓" },
   { id: "session", label: "Session activity", icon: "▤" },
