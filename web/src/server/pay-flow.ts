@@ -12,6 +12,18 @@ const X402_ERROR_META = "x402/error";
 const X402_RESPONSE_META = "x402/payment-response";
 const AGENT_ID_META = "agencia/agent-id";
 
+export interface ManifestParam {
+  name: string;
+  type: "string" | "number";
+  label: string;
+  required?: boolean;
+  default?: string | number;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  multiline?: boolean;
+}
+
 export interface ServiceManifest {
   service: string;
   description: string;
@@ -21,6 +33,11 @@ export interface ServiceManifest {
   resources: Array<{
     resource: string;
     tool: string;
+    title?: string;
+    category?: string;
+    description?: string;
+    featured?: boolean;
+    params?: ManifestParam[];
     asset: string;
     payTo: string;
     pricing: Record<string, unknown>;
@@ -42,8 +59,9 @@ export async function fetchHealth(): Promise<Record<string, unknown>> {
   return (await res.json()) as Record<string, unknown>;
 }
 
-export interface PaidInferOutcome {
+export interface PaidCallOutcome {
   ok: boolean;
+  tool?: string;
   text?: string;
   usage?: { prompt: number; completion: number; total: number };
   payment?: {
@@ -77,13 +95,18 @@ function paymentClient(): x402Client {
   return sdkClient;
 }
 
-export async function runPaidInfer(
-  prompt: string,
-  maxTokens: number,
-): Promise<PaidInferOutcome> {
+export async function runPaidCall(
+  tool: string,
+  args: Record<string, unknown>,
+  maxHbar?: number,
+): Promise<PaidCallOutcome> {
   const steps: string[] = [];
   const manifest = await fetchManifest();
   steps.push(`discovered "${manifest.service}" on ${manifest.network} via /.well-known/x402`);
+
+  if (!manifest.resources.some((r) => r.tool === tool)) {
+    return { ok: false, tool, error: `unknown tool "${tool}"`, steps };
+  }
 
   const mcp = new McpClient({ name: "agencia-web-agent", version: "0.1.0" });
   await mcp.connect(new StreamableHTTPClientTransport(new URL(manifest.mcp.url)));
@@ -91,8 +114,8 @@ export async function runPaidInfer(
 
   const call = (payment?: string) =>
     mcp.callTool({
-      name: "infer",
-      arguments: { prompt, max_tokens: maxTokens },
+      name: tool,
+      arguments: args,
       _meta: {
         [AGENT_ID_META]: `hcs-14:web:${serverConfig.agent.accountId}`,
         ...(payment ? { [X402_PAYMENT_META]: payment } : {}),
@@ -103,7 +126,7 @@ export async function runPaidInfer(
     let result = await call();
     const challenge = result._meta?.[X402_ERROR_META] as PaymentRequired | undefined;
     if (!result.isError || !challenge?.accepts?.length) {
-      return { ok: false, error: "service did not return a 402 challenge", steps };
+      return { ok: false, tool, error: "service did not return a 402 challenge", steps };
     }
 
     const req = challenge.accepts[0];
@@ -112,9 +135,18 @@ export async function runPaidInfer(
       `402 — quote ${quotedHbar} HBAR to ${req.payTo}, feePayer ${(req.extra as { feePayer?: string }).feePayer}`,
     );
 
+    if (maxHbar != null && maxHbar > 0 && quotedHbar > maxHbar) {
+      return {
+        ok: false,
+        tool,
+        error: `quote ${quotedHbar} HBAR exceeds per-call cap ${maxHbar} HBAR`,
+        steps,
+      };
+    }
     if (serverConfig.agent.budgetHbar > 0 && quotedHbar > serverConfig.agent.budgetHbar) {
       return {
         ok: false,
+        tool,
         error: `quote ${quotedHbar} HBAR exceeds agent budget ${serverConfig.agent.budgetHbar} HBAR`,
         steps,
       };
@@ -133,6 +165,7 @@ export async function runPaidInfer(
     if (result.isError) {
       return {
         ok: false,
+        tool,
         error: `retry failed: ${JSON.stringify(result._meta?.[X402_ERROR_META] ?? result.content)}`,
         steps,
       };
@@ -149,7 +182,7 @@ export async function runPaidInfer(
           hcs: { topicId: string; sequenceNumber: string } | null;
         }
       | undefined;
-    const usage = result._meta?.usage as PaidInferOutcome["usage"];
+    const usage = result._meta?.usage as PaidCallOutcome["usage"];
     steps.push(
       receipt?.hcs
         ? `settled via Blocky402 — HCS receipt #${receipt.hcs.sequenceNumber}`
@@ -158,6 +191,7 @@ export async function runPaidInfer(
 
     return {
       ok: true,
+      tool,
       text,
       usage,
       payment: receipt

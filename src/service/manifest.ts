@@ -1,6 +1,7 @@
 import { config } from "../config.js";
 import { facilitatorName } from "../facilitator.js";
 import { mirrorTopicMessagesUrl } from "../hedera.js";
+import { CATALOG, type ToolParam, type ToolPricing } from "./catalog.js";
 
 export interface ServiceManifest {
   service: string;
@@ -11,9 +12,14 @@ export interface ServiceManifest {
   resources: Array<{
     resource: string;
     tool: string;
+    title: string;
+    category: string;
+    description: string;
+    featured: boolean;
+    params: ToolParam[];
     asset: string;
     payTo: string;
-    pricing: Record<string, unknown>;
+    pricing: ToolPricing & { settledUnit: "tinybar" };
   }>;
   audit: { type: "hcs"; topicId: string; mirror: string } | null;
 }
@@ -22,7 +28,7 @@ export function buildManifest(origin: string): ServiceManifest {
   return {
     service: "Agencia",
     description:
-      "Pay-per-call AI inference on Hedera, gated by x402 and settled through Blocky402.",
+      "Pay-per-call services on Hedera — inference, on-chain data and price feeds — gated by x402 and settled through Blocky402.",
     network: config.network,
     x402: {
       version: 2,
@@ -31,21 +37,18 @@ export function buildManifest(origin: string): ServiceManifest {
       facilitatorHost: facilitatorName,
     },
     mcp: { url: `${origin}/mcp`, transport: "streamable-http" },
-    resources: [
-      {
-        resource: "agencia://infer",
-        tool: "infer",
-        asset: "0.0.0",
-        payTo: config.service.payTo,
-        pricing: {
-          model: "per-call + per-token",
-          perCallHbar: config.pricing.perCallHbar,
-          per1kTokenHbar: config.pricing.per1kTokenHbar,
-          unit: "HBAR",
-          settledUnit: "tinybar",
-        },
-      },
-    ],
+    resources: CATALOG.map((t) => ({
+      resource: `agencia://${t.name}`,
+      tool: t.name,
+      title: t.title,
+      category: t.category,
+      description: t.description,
+      featured: t.featured ?? false,
+      params: t.params,
+      asset: "0.0.0",
+      payTo: config.service.payTo,
+      pricing: { ...t.pricing, settledUnit: "tinybar" },
+    })),
     audit: config.service.hcsTopicId
       ? {
           type: "hcs",

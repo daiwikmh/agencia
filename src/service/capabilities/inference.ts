@@ -41,7 +41,3 @@ export async function runInference(args: InferenceArgs): Promise<InferenceResult
     },
   };
 }
-
-export function priceInHbar(maxTokens: number): number {
-  return config.pricing.perCallHbar + config.pricing.per1kTokenHbar * (maxTokens / 1000);
-}

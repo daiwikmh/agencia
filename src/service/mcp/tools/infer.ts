@@ -1,13 +1,15 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { priceInHbar, runInference } from "../../capabilities/inference.js";
+import { catalogEntry, priceFor } from "../../catalog.js";
+import { runInference } from "../../capabilities/inference.js";
 import { registerPaidTool } from "../../payments/paid-tool.js";
 
 export function registerInferTool(server: McpServer): void {
+  const entry = catalogEntry("infer");
+  if (!entry) return;
   registerPaidTool(server, {
-    name: "infer",
-    description:
-      "Run a chat completion on Agencia's hosted model. Priced from max_tokens: perCall + per-1k-token, in HBAR.",
+    name: entry.name,
+    description: entry.description,
     inputSchema: {
       prompt: z.string().describe("User prompt"),
       max_tokens: z
@@ -19,7 +21,7 @@ export function registerInferTool(server: McpServer): void {
         .describe("Max completion tokens; also sets the payment ceiling"),
       system: z.string().optional().describe("Optional system prompt"),
     },
-    price: (args) => priceInHbar(Number(args.max_tokens ?? 256)),
+    price: (args) => priceFor(entry.name, args),
     run: async (args) => {
       const result = await runInference({
         prompt: String(args.prompt),

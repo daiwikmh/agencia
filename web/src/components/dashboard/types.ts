@@ -11,13 +11,36 @@ export interface HealthResp {
   error?: string;
 }
 
+export interface ToolParam {
+  name: string;
+  type: "string" | "number";
+  label: string;
+  required?: boolean;
+  default?: string | number;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  multiline?: boolean;
+}
+
 export interface ManifestResource {
   resource: string;
   tool: string;
+  title?: string;
+  category?: string;
+  description?: string;
+  featured?: boolean;
+  params?: ToolParam[];
   asset: string;
   payTo: string;
-  memo: string;
-  pricing: { model?: string; perCallHbar?: number; per1kTokenHbar?: number };
+  memo?: string;
+  pricing: {
+    model?: string;
+    perCallHbar?: number;
+    per1kTokenHbar?: number;
+    perResultHbar?: number;
+    unit?: string;
+  };
 }
 
 export interface Manifest {
@@ -36,6 +59,17 @@ export interface ManifestResp {
   error?: string;
 }
 
+export interface WalletResp {
+  ok: boolean;
+  accountId?: string;
+  balanceHbar?: number;
+  tokens?: { token_id: string; balance: number }[];
+  createdTimestamp?: string | null;
+  budgetHbar?: number;
+  network?: string;
+  error?: string;
+}
+
 export interface HcsMessage {
   consensus_timestamp: string;
   sequence_number: number;
@@ -49,8 +83,9 @@ export interface AuditResp {
   error?: string;
 }
 
-export interface InferOutcome {
+export interface CallOutcome {
   ok: boolean;
+  tool?: string;
   text?: string;
   usage?: { prompt: number; completion: number; total: number };
   payment?: {
@@ -67,22 +102,52 @@ export interface InferOutcome {
 
 export interface SessionCall {
   id: string;
-  prompt: string;
-  maxTokens: number;
+  tool: string;
+  summary: string;
   at: string;
   status: "running" | "ok" | "error";
   hbar?: number;
   txId?: string;
 }
 
-export const TABS = ["overview", "fire", "analytics", "manifest", "audit", "session"] as const;
+export const TABS = [
+  "catalog",
+  "playground",
+  "graph",
+  "wallet",
+  "budgets",
+  "usage",
+  "audit",
+] as const;
 export type Tab = (typeof TABS)[number];
 
 export const SECTIONS: { id: Tab; label: string; icon: string }[] = [
-  { id: "overview", label: "Overview", icon: "◆" },
-  { id: "fire", label: "Fire request", icon: "⚡" },
-  { id: "analytics", label: "Analytics", icon: "▦" },
-  { id: "manifest", label: "Service manifest", icon: "≡" },
+  { id: "catalog", label: "Catalog", icon: "▦" },
+  { id: "playground", label: "Playground", icon: "▷" },
+  { id: "graph", label: "The Graph", icon: "◎" },
+  { id: "wallet", label: "Wallet", icon: "◈" },
+  { id: "budgets", label: "Budgets", icon: "⛨" },
+  { id: "usage", label: "Usage", icon: "▤" },
   { id: "audit", label: "HCS audit trail", icon: "⛓" },
-  { id: "session", label: "Session activity", icon: "▤" },
 ];
+
+export const CATEGORY_ICON: Record<string, string> = {
+  Inference: "⚡",
+  "Hedera Data": "⛓",
+  NFTs: "◈",
+  Finance: "₿",
+  Web: "⬡",
+  Dev: "⌥",
+  "The Graph": "◎",
+};
+
+export const CATEGORY_COLOR: Record<string, string> = {
+  Inference: "#3987e5",
+  "Hedera Data": "#d95926",
+  NFTs: "#199e70",
+  Finance: "#c98500",
+  Web: "#d55181",
+  Dev: "#008300",
+  "The Graph": "#9085e9",
+};
+export const CATEGORY_COLOR_FALLBACK = "#8A8A95";

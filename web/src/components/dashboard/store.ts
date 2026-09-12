@@ -5,6 +5,7 @@ const RESOURCES = {
   health: { url: "/api/health", ttl: 15000 },
   manifest: { url: "/api/manifest", ttl: 60000 },
   audit: { url: "/api/audit", ttl: 20000 },
+  wallet: { url: "/api/wallet", ttl: 20000 },
 } as const;
 
 export type ResourceKey = keyof typeof RESOURCES;
@@ -15,7 +16,7 @@ interface CacheEntry<T> {
 }
 
 const cacheKey = (key: string) => `ag:res:${key}`;
-const CALLS_KEY = "ag:calls";
+const CALLS_KEY = "ag:calls:v2";
 
 function hasStorage() {
   return typeof window !== "undefined" && !!window.sessionStorage;
@@ -140,4 +141,55 @@ export function useSessionCalls() {
   }, []);
 
   return [calls, update] as const;
+}
+
+export interface Budgets {
+  dailyHbar: number;
+  dailyEnabled: boolean;
+  perCallHbar: number;
+  perCallEnabled: boolean;
+}
+
+const BUDGETS_KEY = "ag:budgets";
+const DEFAULT_BUDGETS: Budgets = {
+  dailyHbar: 5,
+  dailyEnabled: false,
+  perCallHbar: 0.5,
+  perCallEnabled: false,
+};
+
+function readBudgets(): Budgets {
+  if (!hasStorage()) return DEFAULT_BUDGETS;
+  try {
+    const raw = localStorage.getItem(BUDGETS_KEY);
+    return raw ? { ...DEFAULT_BUDGETS, ...(JSON.parse(raw) as Partial<Budgets>) } : DEFAULT_BUDGETS;
+  } catch {
+    return DEFAULT_BUDGETS;
+  }
+}
+
+export function useBudgets() {
+  const [budgets, setBudgets] = useState<Budgets>(readBudgets);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === BUDGETS_KEY) setBudgets(readBudgets());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const patch = useCallback((next: Partial<Budgets>) => {
+    setBudgets((prev) => {
+      const merged = { ...prev, ...next };
+      try {
+        localStorage.setItem(BUDGETS_KEY, JSON.stringify(merged));
+      } catch {
+        return merged;
+      }
+      return merged;
+    });
+  }, []);
+
+  return [budgets, patch] as const;
 }

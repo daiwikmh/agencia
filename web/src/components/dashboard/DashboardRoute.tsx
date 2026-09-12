@@ -1,20 +1,22 @@
-import Shell from "./Shell.js";
-import Overview from "./panels/Overview.js";
-import Fire from "./panels/Fire.js";
-import Analytics from "./panels/Analytics.js";
-import Manifest from "./panels/Manifest.js";
-import Audit from "./panels/Audit.js";
-import Session from "./panels/Session.js";
 import type { ComponentType } from "react";
+import Shell from "./Shell.js";
+import Catalog from "./panels/Catalog.js";
+import Playground from "./panels/Playground.js";
+import Graph from "./panels/Graph.js";
+import Wallet from "./panels/Wallet.js";
+import Budgets from "./panels/Budgets.js";
+import Usage from "./panels/Usage.js";
+import Audit from "./panels/Audit.js";
 import type { Tab } from "./types.js";
 
 const PANELS: Record<Tab, ComponentType> = {
-  overview: Overview,
-  fire: Fire,
-  analytics: Analytics,
-  manifest: Manifest,
+  catalog: Catalog,
+  playground: Playground,
+  graph: Graph,
+  wallet: Wallet,
+  budgets: Budgets,
+  usage: Usage,
   audit: Audit,
-  session: Session,
 };
 
 export default function DashboardRoute({ tab }: { tab: Tab }) {

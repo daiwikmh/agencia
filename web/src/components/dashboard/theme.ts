@@ -1,5 +1,5 @@
-export const FF_HEAD = "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-export const FF_MONO = "'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+export const FF_HEAD = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FF_MONO = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 export const FF_BODY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 export const C = {

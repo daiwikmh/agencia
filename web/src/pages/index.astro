@@ -10,11 +10,11 @@ const POSTER_URL =
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Agencia — Machine-Speed Payments for AI Services on Hedera</title>
+    <title>Agencia — Connect your agent to every service it needs</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -41,8 +41,9 @@ const POSTER_URL =
       body {
         background: var(--bg);
         color: var(--ink);
-        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
+        font-weight: 400;
         -webkit-font-smoothing: antialiased;
       }
       body.nav-open {
@@ -940,15 +941,18 @@ const POSTER_URL =
         <div class="hero__content">
           <h1 class="hero__title">
             <span class="hero__line anim" style="--d:9"
-              >Inference by the <span class="hl">Call,</span></span
+              >Connect your agent to every</span
             >
-            <span class="hero__line anim" style="--d:10">Settled in HBAR</span>
+            <span class="hero__line anim" style="--d:10"
+              ><span class="hl">service</span> it needs</span
+            >
           </h1>
           <p class="hero__text anim" style="--d:11">
-            An x402-gated service on Hedera and the agent that consumes it. Your agent discovers
-            the endpoint, pays per request in HBAR through Blocky402, and gets its answer &mdash;
-            no API key, no subscription, no invoice at the month&rsquo;s end. Sub-second
-            finality, sub-cent fees, every payment on the ledger.
+            A catalog of x402-gated services on Hedera &mdash; inference, on-chain data, price
+            feeds &mdash; and the agent that consumes them. Your agent discovers an endpoint, pays
+            per call in HBAR through Blocky402, and gets its answer &mdash; no API key, no
+            subscription, no invoice at the month&rsquo;s end. Sub-second finality, sub-cent fees,
+            every payment on the ledger.
           </p>
           <a class="cta" href="/dashboard">
             <span class="cta__label anim" style="--d:12">Open the dashboard</span>

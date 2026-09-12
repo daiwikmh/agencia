@@ -42,4 +42,8 @@ export const config = {
     apiKey: process.env.NVIDIA_API_KEY ?? "",
     model: process.env.NIM_MODEL ?? "openai/gpt-oss-120b",
   },
+  graph: {
+    apiKey: process.env.GRAPH_API_KEY ?? "",
+    gatewayBase: process.env.GRAPH_GATEWAY_BASE ?? "https://gateway.thegraph.com/api",
+  },
 };

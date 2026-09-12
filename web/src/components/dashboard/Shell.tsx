@@ -4,13 +4,14 @@ import { C, FF_HEAD, FF_MONO } from "./theme.js";
 import { Dot } from "./ui.js";
 import { fmtHbar } from "./format.js";
 import { SECTIONS, type Tab } from "./types.js";
-import type { AuditResp, HealthResp, ManifestResp } from "./types.js";
+import type { AuditResp, HealthResp, ManifestResp, WalletResp } from "./types.js";
 import { refreshAll, useResource, useSessionCalls } from "./store.js";
 
 export default function Shell({ active, children }: { active: Tab; children: ReactNode }) {
   const { data: health } = useResource<HealthResp>("health");
   const { data: manifestResp } = useResource<ManifestResp>("manifest");
   const { data: audit } = useResource<AuditResp>("audit");
+  const { data: wallet } = useResource<WalletResp>("wallet");
   const [calls] = useSessionCalls();
 
   const manifest = manifestResp?.manifest ?? null;
@@ -99,6 +100,26 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
             </a>
           ))}
         </nav>
+
+        <a
+          href="/dashboard/wallet"
+          style={{
+            margin: "10px 14px",
+            padding: "10px 12px",
+            border: `1px solid ${C.border}`,
+            borderRadius: 12,
+            background: C.card,
+            textDecoration: "none",
+            display: "block",
+          }}
+        >
+          <div style={{ fontSize: 8.5, color: C.faint, fontFamily: FF_MONO, letterSpacing: "0.16em" }}>
+            BALANCE
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: FF_HEAD }}>
+            {wallet?.ok && wallet.balanceHbar != null ? fmtHbar(wallet.balanceHbar) : "—"}
+          </div>
+        </a>
 
         <div style={{ padding: "12px 18px", borderTop: `1px solid ${C.border}` }}>
           <a className="ag-link" href="/" style={{ fontSize: 11, fontFamily: FF_MONO }}>
