@@ -1,25 +1,27 @@
-export const FF_HEAD = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-export const FF_MONO = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-export const FF_BODY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FF_HEAD = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FF_MONO = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FF_BODY = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 export const C = {
-  bg: "#0B0B0F",
-  card: "#151519",
-  navy: "#0E0E12",
-  navyLight: "#1C1C22",
-  border: "#242430",
-  ink: "#F5F5F7",
-  white: "#F5F5F7",
-  muted: "#8A8A95",
-  faint: "#585863",
-  accent: "#4FD1C5",
-  accentBg: "#0C2724",
-  green: "#4ADE80",
-  greenBg: "#0E2A1C",
-  amber: "#FBBF24",
-  amberBg: "#2A2109",
-  red: "#F87171",
-  redBg: "#2A1418",
-  cyan: "#22D3EE",
-  cyanBg: "#08262C",
+  bg: "#E8E8EA",
+  card: "#FFFFFF",
+  navy: "#F2F2F4",
+  navyLight: "#E7E7EB",
+  border: "#E3E3E7",
+  ink: "#252A35",
+  white: "#161C28",
+  muted: "#6F737E",
+  faint: "#9B9EA8",
+  accent: "#DE4C26",
+  accentBg: "#FBE7E1",
+  green: "#1E9E68",
+  greenBg: "#E0F3E9",
+  amber: "#D98324",
+  amberBg: "#FBEEDD",
+  red: "#D6452A",
+  redBg: "#FAE3DD",
+  cyan: "#7DA2D4",
+  cyanBg: "#E6EDF7",
 };
+
+export const RADIUS = { card: 26, panel: 18, pill: 999 };

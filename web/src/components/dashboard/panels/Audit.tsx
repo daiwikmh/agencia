@@ -9,7 +9,7 @@ export default function Audit() {
 
   return (
     <section>
-      <SectionTitle>HCS payment audit trail</SectionTitle>
+      <SectionTitle>Payment receipts</SectionTitle>
       <Card pad={0}>
         {audit?.messages.length ? (
           <div>

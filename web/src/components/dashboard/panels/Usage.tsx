@@ -95,7 +95,7 @@ export default function Usage() {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <SectionTitle>Usage · settled on-chain</SectionTitle>
+        <SectionTitle>Settled on-chain</SectionTitle>
         {events.length ? (
           <div
             style={{
@@ -134,7 +134,7 @@ export default function Usage() {
           <div>
             <SectionTitle>Revenue · last {WINDOW_DAYS} days</SectionTitle>
             <Card>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 120 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 140 }}>
                 {buckets.map((b) => (
                   <div
                     key={b.start}
@@ -144,15 +144,18 @@ export default function Usage() {
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "flex-end",
+                      alignItems: "center",
                       height: "100%",
                     }}
                   >
                     <div
                       style={{
-                        height: `${Math.max((b.hbar / maxBucket) * 100, b.hbar > 0 ? 3 : 0)}%`,
-                        background: b.hbar > 0 ? C.accent : C.border,
-                        borderRadius: "3px 3px 0 0",
-                        minHeight: b.hbar > 0 ? 3 : 1,
+                        width: 24,
+                        maxWidth: "70%",
+                        height: `${Math.max((b.hbar / maxBucket) * 100, b.hbar > 0 ? 4 : 0)}%`,
+                        background: b.hbar > 0 ? C.accent : C.navyLight,
+                        borderRadius: 999,
+                        minHeight: b.hbar > 0 ? 8 : 8,
                       }}
                     />
                   </div>

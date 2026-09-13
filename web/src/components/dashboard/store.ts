@@ -121,23 +121,27 @@ function writeCalls(calls: SessionCall[]) {
   }
 }
 
+const callListeners = new Set<(calls: SessionCall[]) => void>();
+
 export function useSessionCalls() {
   const [calls, setCalls] = useState<SessionCall[]>(readCalls);
 
   useEffect(() => {
+    callListeners.add(setCalls);
     const onStorage = (e: StorageEvent) => {
       if (e.key === CALLS_KEY) setCalls(readCalls());
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return () => {
+      callListeners.delete(setCalls);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const update = useCallback((fn: (prev: SessionCall[]) => SessionCall[]) => {
-    setCalls((prev) => {
-      const next = fn(prev);
-      writeCalls(next);
-      return next;
-    });
+    const next = fn(readCalls());
+    writeCalls(next);
+    callListeners.forEach((listener) => listener(next));
   }, []);
 
   return [calls, update] as const;

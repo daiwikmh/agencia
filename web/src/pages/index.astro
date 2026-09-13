@@ -1,8 +1,5 @@
 ---
-const VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260831_231820_baf1d009-9cc2-4f94-a720-b04a94a8eab4.mp4";
-const POSTER_URL =
-  "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260831_224622_4eeb9d43-9e46-4483-9530-1eb4ef4c942d.png&w=1920&q=85";
+const HERO_GIF_URL = "/hero-glow.gif";
 ---
 
 <!DOCTYPE html>
@@ -11,6 +8,7 @@ const POSTER_URL =
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Agencia — Connect your agent to every service it needs</title>
+    <link rel="icon" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -100,6 +98,11 @@ const POSTER_URL =
         color: inherit;
         flex: 0 0 auto;
         min-width: 0;
+      }
+      .brand__mark {
+        height: clamp(19px, 1.5vw, 25px);
+        width: auto;
+        margin-right: clamp(8px, 0.7vw, 11px);
       }
       .brand__name {
         font-weight: 700;
@@ -862,18 +865,7 @@ const POSTER_URL =
   <body>
     <section class="hero">
       <div class="hero__media anim" style="--d:0">
-        <video
-          class="hero__video anim"
-          style="--d:1"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="auto"
-          poster={POSTER_URL}
-        >
-          <source src={VIDEO_URL} type="video/mp4" />
-        </video>
+        <img class="hero__video anim" style="--d:1" src={HERO_GIF_URL} alt="" />
 
         <div class="marker marker--water">
           <span class="marker__line anim" style="--d:14"></span>
@@ -918,7 +910,12 @@ const POSTER_URL =
 
       <div class="hero__left">
         <nav class="nav" aria-label="Primary">
-          <a class="brand" href="#"><span class="brand__name anim" style="--d:2">Agencia</span></a>
+          <a class="brand" href="#"
+            ><img class="brand__mark anim" style="--d:2" src="/logo.png" alt="" /><span
+              class="brand__name anim"
+              style="--d:2">Agencia</span
+            ></a
+          >
           <ul class="nav__links">
             <li class="anim" style="--d:4"><a href="#service">Service</a></li>
             <li class="anim" style="--d:5"><a href="#pricing">Pricing</a></li>

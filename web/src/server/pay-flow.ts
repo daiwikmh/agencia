@@ -7,10 +7,10 @@ import { createClientHederaSigner, PrivateKey } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
 import { serverConfig, tinybarToHbar } from "./config.js";
 
-const X402_PAYMENT_META = "x402/payment";
-const X402_ERROR_META = "x402/error";
-const X402_RESPONSE_META = "x402/payment-response";
-const AGENT_ID_META = "agencia/agent-id";
+export const X402_PAYMENT_META = "x402/payment";
+export const X402_ERROR_META = "x402/error";
+export const X402_RESPONSE_META = "x402/payment-response";
+export const AGENT_ID_META = "agencia/agent-id";
 
 export interface ManifestParam {
   name: string;
@@ -76,22 +76,32 @@ export interface PaidCallOutcome {
   steps: string[];
 }
 
-function hashscanTx(txId: string): string {
+export function hashscanTx(txId: string): string {
   const mirrorId = txId.replace("@", "-").replace(/\.(\d+)$/, "-$1");
   return `${serverConfig.hashscanBase}/transaction/${mirrorId}`;
 }
 
 let sdkClient: x402Client | null = null;
-function paymentClient(): x402Client {
+export function paymentClient(): x402Client {
   if (sdkClient) return sdkClient;
   if (!serverConfig.agent.accountId || !serverConfig.agent.privateKey) {
     throw new Error("AGENT_ACCOUNT_ID and AGENT_PRIVATE_KEY are not configured");
   }
   const signer = createClientHederaSigner(
     serverConfig.agent.accountId,
-    PrivateKey.fromString(serverConfig.agent.privateKey),
+    PrivateKey.fromStringECDSA(serverConfig.agent.privateKey),
   );
-  sdkClient = new x402Client().register("hedera:*", new ExactHederaScheme(signer));
+  sdkClient = new x402Client()
+    .register("hedera:*", new ExactHederaScheme(signer))
+    .setSpendControls({
+      allowedAssets: [
+        {
+          network: serverConfig.network as `${string}:${string}`,
+          asset: "0.0.0",
+          maxAmountPerPayment: "100000000",
+        },
+      ],
+    });
   return sdkClient;
 }
 

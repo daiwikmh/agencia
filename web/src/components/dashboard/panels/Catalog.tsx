@@ -9,7 +9,11 @@ export default function Catalog() {
   const { data: manifestResp } = useResource<ManifestResp>("manifest");
   const { data: health } = useResource<HealthResp>("health");
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() =>
+    typeof window === "undefined"
+      ? ""
+      : (new URLSearchParams(window.location.search).get("q") ?? ""),
+  );
   const [category, setCategory] = useState<string>("All");
 
   const resources = manifestResp?.manifest?.resources ?? [];
@@ -44,16 +48,8 @@ export default function Catalog() {
   const rest = searching ? filtered : filtered.filter((r) => !r.featured);
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <SectionTitle>Catalog · services behind x402</SectionTitle>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search endpoints (e.g. account snapshot, price feed, dns)"
-          style={{ width: "100%" }}
-        />
-      </div>
+    <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <SectionTitle style={{ marginBottom: 0 }}>Services behind x402</SectionTitle>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {categories.map((c) => (
@@ -62,15 +58,23 @@ export default function Catalog() {
             onClick={() => setCategory(c.name)}
             className="ag-btn"
             style={{
-              background: category === c.name ? C.accentBg : C.card,
-              color: category === c.name ? C.accent : C.muted,
-              border: `1px solid ${category === c.name ? C.accent : C.border}`,
+              background: category === c.name ? C.white : C.card,
+              color: category === c.name ? "#FFFFFF" : C.muted,
             }}
           >
             {c.name}
-            <span style={{ fontFamily: FF_MONO, fontSize: 10, opacity: 0.7 }}>{c.count}</span>
+            <span style={{ fontFamily: FF_MONO, fontSize: 11, opacity: 0.6 }}>{c.count}</span>
           </button>
         ))}
+        {query.trim() && (
+          <button
+            onClick={() => setQuery("")}
+            className="ag-btn"
+            style={{ background: C.accentBg, color: C.accent }}
+          >
+            “{query.trim()}” ✕
+          </button>
+        )}
       </div>
 
       {resources.length === 0 ? (
@@ -85,8 +89,8 @@ export default function Catalog() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))",
-                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fill,minmax(330px,1fr))",
+                  gap: 16,
                   alignItems: "start",
                 }}
               >
@@ -105,8 +109,8 @@ export default function Catalog() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))",
-                gap: 12,
+                gridTemplateColumns: "repeat(auto-fill,minmax(330px,1fr))",
+                gap: 16,
                 alignItems: "start",
               }}
             >

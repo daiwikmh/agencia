@@ -112,6 +112,8 @@ export interface SessionCall {
 
 export const TABS = [
   "catalog",
+  "connect",
+  "live",
   "playground",
   "graph",
   "wallet",
@@ -121,14 +123,61 @@ export const TABS = [
 ] as const;
 export type Tab = (typeof TABS)[number];
 
-export const SECTIONS: { id: Tab; label: string; icon: string }[] = [
-  { id: "catalog", label: "Catalog", icon: "▦" },
-  { id: "playground", label: "Playground", icon: "▷" },
-  { id: "graph", label: "The Graph", icon: "◎" },
-  { id: "wallet", label: "Wallet", icon: "◈" },
-  { id: "budgets", label: "Budgets", icon: "⛨" },
-  { id: "usage", label: "Usage", icon: "▤" },
-  { id: "audit", label: "HCS audit trail", icon: "⛓" },
+export const SECTIONS: { id: Tab; label: string; icon: string; blurb: string }[] = [
+  {
+    id: "catalog",
+    label: "Catalog",
+    icon: "▦",
+    blurb: "Browse every service priced behind x402 and pay per call in HBAR",
+  },
+  {
+    id: "connect",
+    label: "Connect",
+    icon: "⇱",
+    blurb: "Everything an agent needs to start buying: a funded wallet, the endpoint, and a client",
+  },
+  {
+    id: "live",
+    label: "Live run",
+    icon: "◉",
+    blurb: "Watch an agent discover the service, get quoted, pay and settle — step by step",
+  },
+  {
+    id: "playground",
+    label: "Playground",
+    icon: "▷",
+    blurb: "Compose a call by hand, inspect the quote, then settle it on Hedera",
+  },
+  {
+    id: "graph",
+    label: "The Graph",
+    icon: "◎",
+    blurb: "Query subgraph data through the same metered payment rail",
+  },
+  {
+    id: "wallet",
+    label: "Wallet",
+    icon: "◈",
+    blurb: "Track the agent account balance, tokens and what this session has spent",
+  },
+  {
+    id: "budgets",
+    label: "Budgets",
+    icon: "⛨",
+    blurb: "Cap what the agent may spend per call and across the session",
+  },
+  {
+    id: "usage",
+    label: "Usage",
+    icon: "▤",
+    blurb: "See revenue settled on-chain, broken down by tool, category and payer",
+  },
+  {
+    id: "audit",
+    label: "HCS audit trail",
+    icon: "⛓",
+    blurb: "Every settled payment, receipted to a Hedera consensus topic",
+  },
 ];
 
 export const CATEGORY_ICON: Record<string, string> = {
@@ -139,6 +188,7 @@ export const CATEGORY_ICON: Record<string, string> = {
   Web: "⬡",
   Dev: "⌥",
   "The Graph": "◎",
+  Compute: "▣",
 };
 
 export const CATEGORY_COLOR: Record<string, string> = {
@@ -149,5 +199,6 @@ export const CATEGORY_COLOR: Record<string, string> = {
   Web: "#d55181",
   Dev: "#008300",
   "The Graph": "#9085e9",
+  Compute: "#2f6f5e",
 };
 export const CATEGORY_COLOR_FALLBACK = "#8A8A95";

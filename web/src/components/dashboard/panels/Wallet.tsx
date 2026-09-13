@@ -16,7 +16,7 @@ export default function Wallet() {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <SectionTitle>Wallet · consuming agent</SectionTitle>
+        <SectionTitle>Consuming agent</SectionTitle>
         {wallet?.ok ? (
           <div
             style={{

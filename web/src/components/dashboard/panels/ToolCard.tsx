@@ -90,9 +90,10 @@ export default function ToolCard({
   return (
     <div
       style={{
-        border: `1px solid ${featured ? C.accent : C.border}`,
-        borderRadius: 14,
+        border: featured ? `1px solid ${C.accent}` : "none",
+        borderRadius: 22,
         background: C.card,
+        boxShadow: "0 1px 3px rgba(22,28,40,0.05)",
         overflow: "hidden",
       }}
     >
@@ -104,25 +105,39 @@ export default function ToolCard({
           background: "none",
           border: "none",
           cursor: "pointer",
-          padding: 16,
+          padding: 20,
           display: "flex",
           flexDirection: "column",
-          gap: 8,
+          gap: 10,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 15 }}>{CATEGORY_ICON[resource.category ?? ""] ?? "◆"}</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.white, fontFamily: FF_HEAD, flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 14,
+              background: C.navy,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              flexShrink: 0,
+            }}
+          >
+            {CATEGORY_ICON[resource.category ?? ""] ?? "◆"}
+          </span>
+          <span style={{ fontSize: 15, fontWeight: 500, color: C.white, fontFamily: FF_HEAD, flex: 1, letterSpacing: "-0.02em" }}>
             {resource.title ?? resource.tool}
           </span>
           <Badge tone="accent">{resource.category ?? "service"}</Badge>
         </div>
-        <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.5 }}>{resource.description}</div>
+        <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.55 }}>{resource.description}</div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 11, color: C.accent, fontFamily: FF_MONO }}>
+          <span style={{ fontSize: 12.5, color: C.accent, fontFamily: FF_MONO }}>
             {priceLabel(resource.pricing)}
           </span>
-          <span style={{ fontSize: 11, color: C.faint, fontFamily: FF_MONO }}>
+          <span style={{ fontSize: 12, color: C.faint, fontFamily: FF_MONO }}>
             {open ? "close ▲" : "call ▾"}
           </span>
         </div>
@@ -132,7 +147,7 @@ export default function ToolCard({
         <div
           style={{
             borderTop: `1px solid ${C.border}`,
-            padding: 16,
+            padding: 20,
             display: "flex",
             flexDirection: "column",
             gap: 12,
@@ -174,12 +189,12 @@ export default function ToolCard({
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               className="ag-btn"
-              style={{ background: C.accent, color: "#06201d" }}
+              style={{ background: C.accent, color: "#FFFFFF" }}
               disabled={running || !reachable || missingRequired}
               onClick={run}
             >
-              {running ? <span className="ag-spinner" /> : "⚡"}
-              {running ? "Paying & calling…" : "Pay & call"}
+              {running ? <span className="ag-spinner" /> : <span>⚡</span>}
+              <span>{running ? "Paying & calling…" : "Pay & call"}</span>
             </button>
             {!reachable && <Badge tone="warn">service offline</Badge>}
             {budgets.perCallEnabled && (
@@ -215,10 +230,10 @@ export default function ToolCard({
                   <pre
                     style={{
                       margin: 0,
-                      background: C.bg,
+                      background: C.card,
                       border: `1px solid ${C.border}`,
-                      borderRadius: 10,
-                      padding: 12,
+                      borderRadius: 16,
+                      padding: 14,
                       fontSize: 12,
                       lineHeight: 1.6,
                       color: C.ink,
@@ -266,9 +281,9 @@ export default function ToolCard({
                 <div
                   style={{
                     background: C.redBg,
-                    border: `1px solid ${C.red}`,
-                    borderRadius: 10,
-                    padding: 12,
+                    border: "none",
+                    borderRadius: 16,
+                    padding: 14,
                     fontSize: 12,
                     color: C.red,
                     fontFamily: FF_MONO,
@@ -287,10 +302,8 @@ export default function ToolCard({
 
 const labelStyle: CSSProperties = {
   display: "block",
-  fontSize: 9,
-  color: C.faint,
+  fontSize: 12,
+  color: C.muted,
   fontFamily: FF_MONO,
-  letterSpacing: "0.13em",
-  textTransform: "uppercase",
-  marginBottom: 6,
+  marginBottom: 7,
 };

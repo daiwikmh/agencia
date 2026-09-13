@@ -119,8 +119,12 @@ export default function Playground() {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <SectionTitle>Playground · call any service</SectionTitle>
-        <select value={tool} onChange={(e) => setTool(e.target.value)} style={{ width: "100%" }}>
+        <SectionTitle>Call any service</SectionTitle>
+        <select
+          value={tool}
+          onChange={(e) => setTool(e.target.value)}
+          style={{ width: "100%", background: C.card, borderRadius: 999, padding: "13px 20px" }}
+        >
           {resources.map((r) => (
             <option key={r.resource} value={r.tool}>
               {CATEGORY_ICON[r.category ?? ""] ?? "◆"} {r.title ?? r.tool} — {r.category}
@@ -133,7 +137,7 @@ export default function Playground() {
         style={{
           display: "grid",
           gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
-          gap: 16,
+          gap: 20,
           alignItems: "start",
         }}
       >
@@ -188,12 +192,12 @@ export default function Playground() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button
                 className="ag-btn"
-                style={{ background: C.accent, color: "#06201d" }}
+                style={{ background: C.accent, color: "#FFFFFF" }}
                 disabled={running || !reachable || missingRequired}
                 onClick={run}
               >
-                {running ? <span className="ag-spinner" /> : "▷"}
-                {running ? "Paying & calling…" : "Pay & call"}
+                {running ? <span className="ag-spinner" /> : <span>▷</span>}
+                <span>{running ? "Paying & calling…" : "Pay & call"}</span>
               </button>
               {!reachable && <Badge tone="warn">service offline</Badge>}
               {budgets.perCallEnabled && (
@@ -266,9 +270,9 @@ export default function Playground() {
                   <div
                     style={{
                       background: C.redBg,
-                      border: `1px solid ${C.red}`,
-                      borderRadius: 10,
-                      padding: 12,
+                      border: "none",
+                      borderRadius: 18,
+                      padding: 16,
                       fontSize: 12,
                       color: C.red,
                       fontFamily: FF_MONO,
@@ -326,29 +330,25 @@ export default function Playground() {
 
 const labelStyle: CSSProperties = {
   display: "block",
-  fontSize: 9,
-  color: C.faint,
+  fontSize: 12,
+  color: C.muted,
   fontFamily: FF_MONO,
-  letterSpacing: "0.13em",
-  textTransform: "uppercase",
-  marginBottom: 6,
+  marginBottom: 7,
 };
 
 const miniTitle: CSSProperties = {
-  fontSize: 9,
-  color: C.faint,
+  fontSize: 12,
+  color: C.muted,
   fontFamily: FF_MONO,
-  letterSpacing: "0.13em",
-  textTransform: "uppercase",
-  marginBottom: 6,
+  marginBottom: 8,
 };
 
 const codeBox: CSSProperties = {
   margin: 0,
-  background: C.bg,
-  border: `1px solid ${C.border}`,
-  borderRadius: 10,
-  padding: 12,
+  background: C.card,
+  border: "none",
+  borderRadius: 18,
+  padding: 16,
   fontSize: 11.5,
   lineHeight: 1.55,
   color: C.ink,

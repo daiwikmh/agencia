@@ -72,7 +72,7 @@ export default function Budgets() {
 
   return (
     <section>
-      <SectionTitle>Budgets · spending controls</SectionTitle>
+      <SectionTitle>Spending controls</SectionTitle>
       <div
         style={{
           display: "grid",

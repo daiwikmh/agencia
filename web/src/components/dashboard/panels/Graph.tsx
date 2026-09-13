@@ -23,7 +23,7 @@ export default function Graph() {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <SectionTitle>The Graph · query 15,000+ subgraphs, pay per query</SectionTitle>
+        <SectionTitle>Query 15,000+ subgraphs, pay per query</SectionTitle>
         <Card>
           <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.6 }}>
             Every query is a paid MCP call, same as the rest of the catalog: 402 → verify →
