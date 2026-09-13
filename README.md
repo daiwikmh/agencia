@@ -239,17 +239,10 @@ claude mcp add --transport http agencia https://your-endpoint/mcp
 ```
 
 ```jsonc
-// Claude Desktop — claude_desktop_config.json     // Cursor — ~/.cursor/mcp.json
 { "mcpServers": { "agencia": {                     { "mcpServers": { "agencia": {
     "type": "http",                                    "type": "streamable-http",
     "url": "https://your-endpoint/mcp" } } }           "url": "https://your-endpoint/mcp" } } }
 ```
-
-| Client | Lists tools | Reads prices | Gets the 402 quote | Completes payment |
-|---|---|---|---|---|
-| Claude Code · Desktop · Cursor, pointed straight at `/mcp` | ✅ | ✅ | ✅ | ❌ |
-| **The same clients via `npm run bridge`** | ✅ | ✅ | — handled for you | ✅ |
-| `AgenciaClient` / `npm run goal` / the dashboard | ✅ | ✅ | ✅ | ✅ |
 
 ### The bridge — make any MCP client able to pay
 
