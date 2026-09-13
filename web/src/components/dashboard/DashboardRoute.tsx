@@ -6,7 +6,6 @@ import Connect from "./panels/Connect.js";
 import LiveRun from "./panels/LiveRun.js";
 import Playground from "./panels/Playground.js";
 import Graph from "./panels/Graph.js";
-import Wallet from "./panels/Wallet.js";
 import Budgets from "./panels/Budgets.js";
 import Usage from "./panels/Usage.js";
 import Audit from "./panels/Audit.js";
@@ -19,7 +18,6 @@ const PANELS: Record<Tab, ComponentType> = {
   live: LiveRun,
   playground: Playground,
   graph: Graph,
-  wallet: Wallet,
   budgets: Budgets,
   usage: Usage,
   audit: Audit,

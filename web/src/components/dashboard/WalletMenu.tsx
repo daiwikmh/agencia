@@ -179,7 +179,6 @@ export default function WalletMenu() {
                 </Action>
                 <Action onClick={() => refresh("wallet")}>Refresh</Action>
                 <Action href={`${explorer}/account/${wallet?.accountId}`}>HashScan ↗</Action>
-                <Action href="/dashboard/wallet">Wallet</Action>
                 <Action href="/dashboard/budgets">Budgets</Action>
               </div>
             </>

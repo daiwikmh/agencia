@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Badge, Card, Empty, SectionTitle } from "../ui.js";
 import { C, FF_HEAD, FF_MONO } from "../theme.js";
-import { fmtHbar, shortId } from "../format.js";
+import { fmtHbar } from "../format.js";
 import { refresh, useSessionCalls } from "../store.js";
 import StreamCard from "./StreamCard.js";
 

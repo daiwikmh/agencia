@@ -117,7 +117,6 @@ export const TABS = [
   "compute",
   "playground",
   "graph",
-  "wallet",
   "budgets",
   "usage",
   "audit",
@@ -135,7 +134,7 @@ export const SECTIONS: { id: Tab; label: string; icon: string; blurb: string }[]
     id: "connect",
     label: "Connect",
     icon: "⇱",
-    blurb: "Everything an agent needs to start buying: a funded wallet, the endpoint, and a client",
+    blurb: "Everything an agent needs to start buying: a funded wallet, the endpoint, and a client that pays",
   },
   {
     id: "live",
@@ -160,12 +159,6 @@ export const SECTIONS: { id: Tab; label: string; icon: string; blurb: string }[]
     label: "The Graph",
     icon: "◎",
     blurb: "Query subgraph data through the same metered payment rail",
-  },
-  {
-    id: "wallet",
-    label: "Wallet",
-    icon: "◈",
-    blurb: "Track the agent account balance, tokens and what this session has spent",
   },
   {
     id: "budgets",
