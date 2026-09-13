@@ -17,6 +17,7 @@ export interface ToolPricing {
   perCallHbar: number;
   per1kTokenHbar?: number;
   perResultHbar?: number;
+  perSecondHbar?: number;
   unit: "HBAR";
 }
 
@@ -47,6 +48,24 @@ export const CATALOG: CatalogEntry[] = [
       model: "per-call + per-token",
       perCallHbar: config.pricing.perCallHbar,
       per1kTokenHbar: config.pricing.per1kTokenHbar,
+      unit: "HBAR",
+    },
+  },
+  {
+    name: "infer_openai",
+    title: "OpenAI inference",
+    category: "Inference",
+    description:
+      "Run a chat completion on OpenAI. Priced from max_tokens: perCall + per-1k-token.",
+    params: [
+      { name: "prompt", type: "string", label: "Prompt", required: true, placeholder: "Ask the model…" },
+      { name: "max_tokens", type: "number", label: "Max tokens", default: 256, min: 1, max: 2048 },
+      { name: "system", type: "string", label: "System prompt" },
+    ],
+    pricing: {
+      model: "per-call + per-token",
+      perCallHbar: config.pricing.perCallHbarOpenai,
+      per1kTokenHbar: config.pricing.per1kTokenHbarOpenai,
       unit: "HBAR",
     },
   },
@@ -196,6 +215,56 @@ export const CATALOG: CatalogEntry[] = [
     pricing: { model: "per-query", perCallHbar: 0.01, unit: "HBAR" },
   },
   {
+    name: "compute_lease",
+    title: "Compute lease",
+    category: "Compute",
+    featured: true,
+    description:
+      "Rent a sandboxed container by the second and run your agent on it. Priced per CPU-second from the cheapest available provider, settled in HBAR, extended by paying ticks.",
+    params: [
+      {
+        name: "seconds",
+        type: "number",
+        label: "Seconds",
+        default: 60,
+        min: 10,
+        max: config.compute.maxLeaseSeconds,
+      },
+      { name: "cpu", type: "number", label: "vCPU", default: 1, min: 1, max: config.compute.maxCpu },
+      {
+        name: "memMb",
+        type: "number",
+        label: "Memory (MB)",
+        default: 512,
+        min: 128,
+        max: config.compute.maxMemMb,
+      },
+      { name: "provider", type: "string", label: "Provider", default: "auto" },
+    ],
+    pricing: {
+      model: "open fee + per-CPU-second",
+      perCallHbar: config.compute.openFeeHbar,
+      perSecondHbar: config.compute.localRatePerSecondHbar,
+      unit: "HBAR",
+    },
+  },
+  {
+    name: "compute_tick",
+    title: "Compute tick",
+    category: "Compute",
+    description:
+      "Extend a live lease by one metering interval. Each tick is its own x402 settlement and its own HCS receipt — stop ticking and the sandbox is reaped.",
+    params: [
+      { name: "leaseId", type: "string", label: "Lease ID", required: true, placeholder: "abc123…" },
+    ],
+    pricing: {
+      model: "per-tick",
+      perCallHbar: 0,
+      perSecondHbar: config.compute.localRatePerSecondHbar,
+      unit: "HBAR",
+    },
+  },
+  {
     name: "github_repo",
     title: "GitHub repo stats",
     category: "Dev",
@@ -222,6 +291,11 @@ export function priceFor(name: string, args: Record<string, unknown>): number {
   }
   if (p.perResultHbar != null) {
     total += p.perResultHbar * Number(args.limit ?? 10);
+  }
+  if (p.perSecondHbar != null) {
+    const seconds = Number(args.seconds ?? config.compute.tickSeconds);
+    const cpu = Number(args.cpu ?? 1);
+    total += p.perSecondHbar * seconds * cpu;
   }
   return total;
 }

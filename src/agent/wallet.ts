@@ -2,7 +2,7 @@ import { x402Client } from "@x402/core/client";
 import type { PaymentRequired } from "@x402/core/types";
 import { createClientHederaSigner, PrivateKey } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
-import { config, tinybarToHbar } from "../config.js";
+import { HBAR_ASSET, config, hbarToTinybar, tinybarToHbar } from "../config.js";
 import { encodePayment } from "../x402.js";
 
 export class AgentWallet {
@@ -16,9 +16,20 @@ export class AgentWallet {
     }
     const signer = createClientHederaSigner(
       config.agent.accountId,
-      PrivateKey.fromString(config.agent.privateKey),
+      PrivateKey.fromStringECDSA(config.agent.privateKey),
     );
-    this.client = new x402Client().register("hedera:*", new ExactHederaScheme(signer));
+    this.client = new x402Client()
+      .register("hedera:*", new ExactHederaScheme(signer))
+      .setSpendControls({
+        maxAmountPerPayment: false,
+        allowedAssets: [
+          {
+            network: config.network,
+            asset: HBAR_ASSET,
+            maxAmountPerPayment: hbarToTinybar(config.agent.maxPaymentHbar).toString(),
+          },
+        ],
+      });
   }
 
   get accountId(): string {

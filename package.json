@@ -7,10 +7,14 @@
   "scripts": {
     "server": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "onboard": "tsx scripts/onboard.ts",
     "agent": "tsx src/agent/run.ts",
+    "lease": "tsx src/agent/lease.ts",
+    "goal": "tsx src/agent/goal.ts",
     "stream": "tsx scripts/stream.ts",
     "create-topic": "tsx scripts/create-topic.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "supplier": "tsx scripts/supplier.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.62.0",

@@ -1,6 +1,8 @@
 import {
+  AccountCreateTransaction,
   AccountId,
   Client,
+  Hbar,
   PrivateKey,
   TopicCreateTransaction,
   TopicMessageSubmitTransaction,
@@ -31,6 +33,38 @@ export function makeClient(operatorId: string, operatorKey: string): Client {
     config.network === "hedera:mainnet" ? Client.forMainnet() : Client.forTestnet();
   client.setOperator(AccountId.fromString(operatorId), parseKey(operatorKey));
   return client;
+}
+
+export interface NewAccount {
+  accountId: string;
+  privateKey: string;
+  publicKey: string;
+  evmAddress: string | null;
+  fundedHbar: number;
+}
+
+export async function createFundedAccount(
+  client: Client,
+  initialHbar: number,
+): Promise<NewAccount> {
+  const key = PrivateKey.generateECDSA();
+  const response = await new AccountCreateTransaction()
+    .setECDSAKeyWithAlias(key)
+    .setInitialBalance(new Hbar(initialHbar))
+    .setAccountMemo("agencia agent wallet")
+    .freezeWith(client)
+    .sign(key);
+  const submitted = await response.execute(client);
+  const receipt = await submitted.getReceipt(client);
+  if (!receipt.accountId) throw new Error("account creation returned no id");
+
+  return {
+    accountId: receipt.accountId.toString(),
+    privateKey: key.toStringRaw(),
+    publicKey: key.publicKey.toStringRaw(),
+    evmAddress: key.publicKey.toEvmAddress() ?? null,
+    fundedHbar: initialHbar,
+  };
 }
 
 export async function createHcsTopic(client: Client, memo: string): Promise<string> {

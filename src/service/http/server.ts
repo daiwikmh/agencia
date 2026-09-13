@@ -6,6 +6,8 @@ import { facilitatorName } from "../../facilitator.js";
 import { health } from "./routes/health.js";
 import { manifest } from "./routes/manifest.js";
 import { mcp } from "./routes/mcp.js";
+import { onboard } from "./routes/onboard.js";
+import { providers } from "./routes/providers.js";
 
 export function createApp(): Hono {
   const app = new Hono();
@@ -13,6 +15,8 @@ export function createApp(): Hono {
   app.route("/", health);
   app.route("/", manifest);
   app.route("/", mcp);
+  app.route("/", providers);
+  app.route("/", onboard);
   return app;
 }
 
@@ -23,6 +27,9 @@ export function startServer(): void {
     console.log(`  GET  /health`);
     console.log(`  GET  /.well-known/x402`);
     console.log(`  ALL  /mcp`);
+    console.log(`  GET  /providers`);
+    console.log(`  POST /providers/register`);
+    console.log(`  POST /onboard`);
     console.log(`  network     ${config.network}`);
     console.log(`  facilitator ${facilitatorName}`);
     console.log(`  payTo       ${config.service.payTo || "(unset)"}`);
