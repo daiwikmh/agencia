@@ -73,6 +73,39 @@ export async function marketplace(cpu: number, memMb: number) {
   };
 }
 
+export async function inventory(cpu: number, memMb: number) {
+  const spec: SandboxSpec = { cpu, memMb, ttlSeconds: config.compute.tickSeconds, image: config.compute.image };
+  const suppliers = new Map(allowlisted().map((s) => [s.id, s]));
+
+  const providers = await Promise.all(
+    listProviders().map(async (p) => {
+      const supplier = suppliers.get(p.id);
+      return {
+        id: p.id,
+        label: p.label,
+        region: p.region ?? "unknown",
+        kind: supplier ? "supplier" : p.id === "local" ? "first-party" : "configured",
+        available: await p.available(),
+        costPerSecondHbar: p.costPerSecondHbar(spec),
+        capacity: p.capacity ? await p.capacity() : null,
+        maxCpu: supplier?.maxCpu ?? config.compute.maxCpu,
+        maxMemMb: supplier?.maxMemMb ?? config.compute.maxMemMb,
+        gpu: supplier?.gpu ?? false,
+        payoutAccountId: supplier?.payoutAccountId ?? null,
+      };
+    }),
+  );
+
+  return {
+    listRatePerSecondHbar: config.compute.localRatePerSecondHbar,
+    openFeeHbar: config.compute.openFeeHbar,
+    tickSeconds: config.compute.tickSeconds,
+    maxLeaseSeconds: config.compute.maxLeaseSeconds,
+    image: config.compute.image,
+    providers,
+  };
+}
+
 export interface RouteResult {
   provider: ComputeProvider;
   ratePerSecondHbar: number;

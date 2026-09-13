@@ -13,15 +13,30 @@ import {
   decodePayment,
 } from "../../x402.js";
 import { recordSettlement } from "../audit/hcs.js";
+import { recordSpend, touchIdentity } from "../identity/accounts.js";
 
 const AGENT_ID_META = "agencia/agent-id";
+const MENUWALKER_URL = process.env.AGENCIA_MENUWALKER_URL ?? "http://127.0.0.1:7373";
+
+let paidCallsInFlight = 0;
+
+function paw(state: "walking" | "curled"): void {
+  if (!process.env.AGENCIA_MENUWALKER) return;
+  void fetch(`${MENUWALKER_URL}/${state}`, { method: "POST" }).catch(() => undefined);
+}
+
+export interface PaidContext {
+  payer: string | null;
+  agent: string | null;
+  paidHbar: number;
+}
 
 export interface PaidToolSpec<Args extends ZodRawShape> {
   name: string;
   description: string;
   inputSchema: Args;
   price: (args: Record<string, unknown>) => number;
-  run: (args: Record<string, unknown>) => Promise<CallToolResult>;
+  run: (args: Record<string, unknown>, ctx: PaidContext) => Promise<CallToolResult>;
 }
 
 function readMeta(extra: unknown, key: string): string | undefined {
@@ -99,39 +114,56 @@ export function registerPaidTool<Args extends ZodRawShape>(
       return challenge(base, verification.invalidReason ?? "INVALID_PAYMENT");
     }
 
-    let result: CallToolResult;
+    paidCallsInFlight += 1;
+    paw("walking");
     try {
-      result = await spec.run(args);
-    } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `tool execution failed: ${String(err)}` }],
+      const ctx: PaidContext = {
+        payer: verification.payer ?? null,
+        agent: readMeta(extra, AGENT_ID_META) ?? null,
+        paidHbar: Number(accepted.amount) / 1e8,
       };
+      if (ctx.payer) {
+        touchIdentity(ctx.payer);
+        recordSpend(ctx.payer, ctx.paidHbar, spec.name === "compute_lease");
+      }
+
+      let result: CallToolResult;
+      try {
+        result = await spec.run(args, ctx);
+      } catch (err) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: `tool execution failed: ${String(err)}` }],
+        };
+      }
+      if (result.isError) return result;
+
+      const settlement = await settlePayment(payload, accepted);
+      if (!settlement.success) {
+        return challenge(base, settlement.errorReason ?? "SETTLEMENT_FAILED");
+      }
+
+      const receipt = {
+        tool: spec.name,
+        transaction: settlement.transaction,
+        network: settlement.network,
+        payer: settlement.payer ?? verification.payer ?? null,
+        agent: readMeta(extra, AGENT_ID_META) ?? null,
+        amount: accepted.amount,
+        asset: accepted.asset,
+        settledAt: new Date().toISOString(),
+      };
+      const hcs = await recordSettlement(receipt);
+
+      result._meta = {
+        ...(result._meta ?? {}),
+        [X402_RESPONSE_META]: { ...settlement, ...receipt, hcs },
+      };
+      return result;
+    } finally {
+      paidCallsInFlight -= 1;
+      if (paidCallsInFlight === 0) paw("curled");
     }
-    if (result.isError) return result;
-
-    const settlement = await settlePayment(payload, accepted);
-    if (!settlement.success) {
-      return challenge(base, settlement.errorReason ?? "SETTLEMENT_FAILED");
-    }
-
-    const receipt = {
-      tool: spec.name,
-      transaction: settlement.transaction,
-      network: settlement.network,
-      payer: settlement.payer ?? verification.payer ?? null,
-      agent: readMeta(extra, AGENT_ID_META) ?? null,
-      amount: accepted.amount,
-      asset: accepted.asset,
-      settledAt: new Date().toISOString(),
-    };
-    const hcs = await recordSettlement(receipt);
-
-    result._meta = {
-      ...(result._meta ?? {}),
-      [X402_RESPONSE_META]: { ...settlement, ...receipt, hcs },
-    };
-    return result;
   };
 
   server.tool(

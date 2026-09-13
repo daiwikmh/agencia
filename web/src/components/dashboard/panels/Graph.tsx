@@ -49,7 +49,7 @@ export default function Graph() {
       </div>
 
       {resource ? (
-        <ToolCard resource={resource} reachable={reachable} featured defaultOpen />
+        <ToolCard resource={resource} reachable={reachable} featured defaultOpen inline />
       ) : (
         <Card>
           <Empty text={manifestResp?.error ?? "graph_query is not in the manifest — is the service running?"} />

@@ -25,7 +25,7 @@ const HERO_GIF_URL = "/hero-glow.gif";
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
         --stagger: 72ms;
-        --nature-img: url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260831_224622_4eeb9d43-9e46-4483-9530-1eb4ef4c942d.png&w=1920&q=85");
+        --nature-img: url("/hero-glow.gif");
       }
 
       * {
@@ -209,10 +209,12 @@ const HERO_GIF_URL = "/hero-glow.gif";
         padding: 0.06em 0.2em 0.14em;
         margin: 0 0.04em;
         border-radius: 16px;
-        background-image: var(--nature-img);
+        background-image: linear-gradient(rgba(6, 8, 12, 0.52), rgba(6, 8, 12, 0.52)),
+          var(--nature-img);
         background-size: cover;
-        background-position: 56% 14%;
+        background-position: 50% 42%;
         background-repeat: no-repeat;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
         -webkit-box-decoration-break: clone;
         box-decoration-break: clone;
       }
@@ -946,10 +948,12 @@ const HERO_GIF_URL = "/hero-glow.gif";
           </h1>
           <p class="hero__text anim" style="--d:11">
             A catalog of x402-gated services on Hedera &mdash; inference, on-chain data, price
-            feeds &mdash; and the agent that consumes them. Your agent discovers an endpoint, pays
-            per call in HBAR through Blocky402, and gets its answer &mdash; no API key, no
-            subscription, no invoice at the month&rsquo;s end. Sub-second finality, sub-cent fees,
-            every payment on the ledger.
+            feeds and <strong>hardware you rent by the second</strong> &mdash; and the agent that
+            consumes them. It discovers an endpoint, pays per call in HBAR through Blocky402, and
+            gets its answer. No API key, no subscription, no invoice at the month&rsquo;s end &mdash;
+            an agent arrives with a Hedera keypair and nothing else. Suppliers plug their own
+            machines in and get paid on the same rail. Sub-second finality, sub-cent fees, every
+            payment receipted on the ledger.
           </p>
           <a class="cta" href="/dashboard">
             <span class="cta__label anim" style="--d:12">Open the dashboard</span>

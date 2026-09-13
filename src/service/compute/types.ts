@@ -3,6 +3,7 @@ export interface SandboxSpec {
   memMb: number;
   ttlSeconds: number;
   image: string;
+  writable?: boolean;
 }
 
 export interface SandboxHandle {
@@ -18,6 +19,13 @@ export interface ExecResult {
   durationMs: number;
 }
 
+export interface Capacity {
+  cpus: number | null;
+  memMb: number | null;
+  runtime: string | null;
+  busyLeases: number;
+}
+
 export interface ComputeProvider {
   id: string;
   label: string;
@@ -28,4 +36,5 @@ export interface ComputeProvider {
   exec(handle: SandboxHandle, command: string, timeoutMs: number): Promise<ExecResult>;
   extend(handle: SandboxHandle, seconds: number): Promise<void>;
   stop(handle: SandboxHandle): Promise<void>;
+  capacity?(): Promise<Capacity | null>;
 }

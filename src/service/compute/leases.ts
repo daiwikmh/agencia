@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { config } from "../../config.js";
 import type { Payout } from "./payouts.js";
 import { payoutSupplier } from "./payouts.js";
@@ -17,6 +19,9 @@ export interface LeaseExec {
 
 export interface Lease {
   id: string;
+  token: string;
+  owner: string | null;
+  agent: string | null;
   provider: string;
   providerLabel: string;
   handle: SandboxHandle;
@@ -35,7 +40,24 @@ export interface Lease {
   payout?: Payout;
 }
 
-const leases = new Map<string, Lease>();
+const leases = new Map<string, Lease>(load().map((l) => [l.id, l]));
+
+function load(): Lease[] {
+  try {
+    return JSON.parse(readFileSync(config.compute.leaseStore, "utf8")) as Lease[];
+  } catch {
+    return [];
+  }
+}
+
+function persist() {
+  try {
+    mkdirSync(dirname(config.compute.leaseStore), { recursive: true });
+    writeFileSync(config.compute.leaseStore, JSON.stringify([...leases.values()], null, 2));
+  } catch {
+    return;
+  }
+}
 
 export interface OpenLeaseInput {
   seconds: number;
@@ -45,6 +67,9 @@ export interface OpenLeaseInput {
   provider?: string;
   paidHbar: number;
   ratePerSecondHbar: number;
+  owner?: string | null;
+  agent?: string | null;
+  writable?: boolean;
 }
 
 export async function openLease(input: OpenLeaseInput): Promise<Lease> {
@@ -53,6 +78,7 @@ export async function openLease(input: OpenLeaseInput): Promise<Lease> {
     memMb: input.memMb,
     ttlSeconds: input.seconds,
     image: input.image ?? config.compute.image,
+    writable: input.writable ?? false,
   };
   const { provider, ratePerSecondHbar } = await route(spec, input.provider);
   const id = randomUUID().slice(0, 12);
@@ -61,6 +87,9 @@ export async function openLease(input: OpenLeaseInput): Promise<Lease> {
 
   const lease: Lease = {
     id,
+    token: randomUUID().replace(/-/g, ""),
+    owner: input.owner ?? null,
+    agent: input.agent ?? null,
     provider: provider.id,
     providerLabel: provider.label,
     handle,
@@ -78,6 +107,7 @@ export async function openLease(input: OpenLeaseInput): Promise<Lease> {
     execMs: 0,
   };
   leases.set(id, lease);
+  persist();
   if (supplierById(provider.id)) recordSupplierLease(provider.id);
   return lease;
 }
@@ -93,16 +123,33 @@ export function tickPriceHbar(leaseId: string): number {
   return rate * config.compute.tickSeconds * cpu;
 }
 
-export function liveLease(id: string): Lease {
+export class LeaseAccessError extends Error {}
+
+export function authorize(id: string, credential?: string | null): Lease {
   const lease = leases.get(id);
-  if (!lease) throw new Error(`unknown lease ${id}`);
+  if (!lease) throw new LeaseAccessError(`unknown lease ${id}`);
+  if (!lease.owner && !lease.token) return lease;
+  const presented = credential ?? "";
+  if (presented === lease.token) return lease;
+  if (lease.owner && presented === lease.owner) return lease;
+  throw new LeaseAccessError(
+    `lease ${id} belongs to another account — present its lease token or pay from ${lease.owner ?? "its owner"}`,
+  );
+}
+
+export function liveLease(id: string, credential?: string | null): Lease {
+  const lease = authorize(id, credential);
   if (lease.status !== "running") throw new Error(`lease ${id} is ${lease.status}`);
   if (Date.now() > lease.expiresAt) throw new Error(`lease ${id} expired — pay a tick to extend`);
   return lease;
 }
 
-export async function execInLease(id: string, command: string): Promise<ExecResult> {
-  const lease = liveLease(id);
+export async function execInLease(
+  id: string,
+  command: string,
+  credential?: string | null,
+): Promise<ExecResult> {
+  const lease = liveLease(id, credential);
   const provider = providerById(lease.provider);
   if (!provider) throw new Error(`provider ${lease.provider} is gone`);
 
@@ -116,13 +163,17 @@ export async function execInLease(id: string, command: string): Promise<ExecResu
     durationMs: result.durationMs,
     at: new Date().toISOString(),
   });
+  persist();
   return result;
 }
 
-export async function tickLease(id: string, paidHbar: number): Promise<Lease> {
+export async function tickLease(id: string, paidHbar: number, payer?: string | null): Promise<Lease> {
   const lease = leases.get(id);
   if (!lease) throw new Error(`unknown lease ${id}`);
   if (lease.status === "closed") throw new Error(`lease ${id} is closed`);
+  if (lease.owner && payer && payer !== lease.owner) {
+    throw new LeaseAccessError(`lease ${id} is owned by ${lease.owner}`);
+  }
 
   const provider = providerById(lease.provider);
   if (!provider) throw new Error(`provider ${lease.provider} is gone`);
@@ -138,12 +189,12 @@ export async function tickLease(id: string, paidHbar: number): Promise<Lease> {
   lease.ticks += 1;
   lease.hbarPaid += paidHbar;
   lease.status = "running";
+  persist();
   return lease;
 }
 
-export async function closeLease(id: string): Promise<Lease> {
-  const lease = leases.get(id);
-  if (!lease) throw new Error(`unknown lease ${id}`);
+export async function closeLease(id: string, credential?: string | null): Promise<Lease> {
+  const lease = authorize(id, credential);
   if (lease.status !== "closed") {
     const provider = providerById(lease.provider);
     await provider?.stop(lease.handle);
@@ -152,20 +203,24 @@ export async function closeLease(id: string): Promise<Lease> {
       recordSupplierSale(lease.provider, lease.secondsPurchased, lease.hbarPaid);
       lease.payout = (await payoutSupplier(lease.provider, lease.hbarPaid, lease.id)) ?? undefined;
     }
+    persist();
   }
   return lease;
 }
 
-export function leaseSummary(lease: Lease) {
+export function leaseSummary(lease: Lease, includeToken = false) {
   const elapsedSeconds = Math.round((Math.min(Date.now(), lease.expiresAt) - lease.openedAt) / 1000);
   return {
     leaseId: lease.id,
+    owner: lease.owner,
+    agent: lease.agent,
     provider: lease.provider,
     providerLabel: lease.providerLabel,
     status: lease.status,
     cpu: lease.spec.cpu,
     memMb: lease.spec.memMb,
     image: lease.spec.image,
+    writable: lease.spec.writable ?? false,
     ratePerSecondHbar: lease.ratePerSecondHbar,
     tickSeconds: lease.tickSeconds,
     tickHbar: Number(tickPriceHbar(lease.id).toFixed(8)),
@@ -181,11 +236,36 @@ export function leaseSummary(lease: Lease) {
     hbarPaid: Number(lease.hbarPaid.toFixed(8)),
     supplierPayout: lease.payout ?? null,
     expiresAt: new Date(lease.expiresAt).toISOString(),
+    ...(includeToken ? { leaseToken: lease.token } : {}),
   };
 }
 
-export function listLeases() {
-  return [...leases.values()].map(leaseSummary);
+export function listLeases(owner?: string | null) {
+  return [...leases.values()]
+    .filter((l) => (owner ? l.owner === owner : true))
+    .map((l) => leaseSummary(l));
+}
+
+export async function reconcile(): Promise<{ resumed: number; closed: number }> {
+  let resumed = 0;
+  let closed = 0;
+  for (const lease of leases.values()) {
+    if (lease.status === "closed") continue;
+    if (Date.now() > lease.expiresAt + config.compute.graceSeconds * 1000) {
+      await closeLease(lease.id, lease.token).catch(() => undefined);
+      closed += 1;
+    } else {
+      resumed += 1;
+    }
+  }
+  persist();
+  return { resumed, closed };
+}
+
+export function liveLeaseRefs(): string[] {
+  return [...leases.values()]
+    .filter((l) => l.status !== "closed")
+    .map((l) => l.handle.ref);
 }
 
 async function reap() {
@@ -194,7 +274,7 @@ async function reap() {
     if (lease.status === "closed") continue;
     if (now > lease.expiresAt + config.compute.graceSeconds * 1000) {
       lease.status = "expired";
-      await closeLease(lease.id).catch(() => undefined);
+      await closeLease(lease.id, lease.token).catch(() => undefined);
     }
   }
 }

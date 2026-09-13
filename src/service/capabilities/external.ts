@@ -1,3 +1,5 @@
+const UA = { "user-agent": "Agencia/0.1 (+https://agencia.reroute-stellarbackend.workers.dev)", accept: "application/json" };
+
 export async function readUrl(url: string) {
   const target = new URL(url);
   if (target.protocol !== "http:" && target.protocol !== "https:") {

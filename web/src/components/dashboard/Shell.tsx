@@ -1,15 +1,16 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { GlobalStyle } from "./GlobalStyle.js";
+import WalletMenu from "./WalletMenu.js";
 import { C, FF_BODY, FF_HEAD, FF_MONO } from "./theme.js";
 import { Badge, Card, Empty, Fact, FactRow } from "./ui.js";
 import { fmtHbar, shortId, timeAgo } from "./format.js";
 import { SECTIONS, CATEGORY_COLOR, CATEGORY_COLOR_FALLBACK, type Tab } from "./types.js";
-import type { AuditResp, HealthResp, ManifestResp, SessionCall, WalletResp } from "./types.js";
+import type { AuditResp, HealthResp, ManifestResp, SessionCall } from "./types.js";
 import { refreshAll, useResource, useSessionCalls } from "./store.js";
 
 const DAY = 86_400_000;
 const DAY_LETTER = ["S", "M", "T", "W", "T", "F", "S"];
-const STEM = 118;
+const STEM = 150;
 
 type Mode = "revenue" | "calls";
 
@@ -17,7 +18,6 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
   const { data: health } = useResource<HealthResp>("health");
   const { data: manifestResp } = useResource<ManifestResp>("manifest");
   const { data: audit } = useResource<AuditResp>("audit");
-  const { data: wallet } = useResource<WalletResp>("wallet");
   const [calls] = useSessionCalls();
   const [mode, setMode] = useState<Mode>("revenue");
 
@@ -165,33 +165,22 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
           >
             ▷
           </a>
-          <a
-            href="/dashboard/wallet"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: C.white,
-              color: "#FFFFFF",
-              borderRadius: 999,
-              padding: "10px 18px",
-              textDecoration: "none",
-              fontSize: 13,
-              fontFamily: FF_HEAD,
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ opacity: 0.55, fontSize: 11 }}>balance</span>
-            {wallet?.ok && wallet.balanceHbar != null ? fmtHbar(wallet.balanceHbar) : "—"}
-          </a>
+          <WalletMenu />
         </header>
 
         <div className="ag-bento">
           <Card
-            pad="30px 32px 26px"
-            style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}
+            pad="28px 32px 26px"
+            style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 28 }}
           >
-            <div className="ag-hero">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 20,
+              }}
+            >
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
                   <span
@@ -208,7 +197,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
                       flexShrink: 0,
                     }}
                   >
-                    {section?.icon ?? "◆"}
+                    {section?.icon ?? "\u25c6"}
                   </span>
                   <h1
                     style={{
@@ -226,7 +215,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
                 </div>
                 <p
                   style={{
-                    margin: "0 0 26px",
+                    margin: 0,
                     fontSize: 14,
                     lineHeight: 1.55,
                     color: C.muted,
@@ -235,7 +224,21 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
                 >
                   {section?.blurb}
                 </p>
+              </div>
 
+              <select
+                className="ag-pill-select"
+                value={mode}
+                onChange={(e) => setMode(e.target.value as Mode)}
+                style={{ border: `1px solid ${C.border}`, flexShrink: 0 }}
+              >
+                <option value="revenue">Revenue</option>
+                <option value="calls">Calls</option>
+              </select>
+            </div>
+
+            <div className="ag-hero">
+              <div style={{ minWidth: 0 }}>
                 <div
                   style={{
                     fontSize: 56,
@@ -254,7 +257,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
                     lineHeight: 1.5,
                     color: C.muted,
                     marginTop: 10,
-                    maxWidth: 260,
+                    maxWidth: 280,
                   }}
                 >
                   {delta != null
@@ -274,20 +277,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
                 </div>
               </div>
 
-              <div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
-                  <select
-                    className="ag-pill-select"
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value as Mode)}
-                    style={{ border: `1px solid ${C.border}` }}
-                  >
-                    <option value="revenue">Revenue</option>
-                    <option value="calls">Calls</option>
-                  </select>
-                </div>
-                <Lollipop buckets={buckets} values={values} label={label} />
-              </div>
+              <Lollipop buckets={buckets} values={values} label={label} />
             </div>
           </Card>
 
@@ -320,7 +310,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
               {calls.length === 0 ? (
                 <Empty text="No calls fired this session yet." />
               ) : (
-                calls.slice(0, 3).map((c, i) => (
+                calls.slice(0, 2).map((c, i) => (
                   <CallRow
                     key={c.id}
                     call={c}
@@ -431,7 +421,7 @@ function Lollipop({
   const peak = values.some((v) => v > 0) ? values.indexOf(Math.max(...values)) : -1;
 
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 6, paddingTop: 44 }}>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 6, paddingTop: 40 }}>
       {buckets.map((b, i) => {
         const v = values[i];
         const h = v > 0 ? Math.max((v / max) * STEM, 14) : 8;
@@ -521,7 +511,7 @@ function Lollipop({
 }
 
 function CallRow({ call, first, color }: { call: SessionCall; first: boolean; color: string }) {
-  const [open, setOpen] = useState(first);
+  const [open, setOpen] = useState(false);
 
   return (
     <div style={{ borderTop: first ? "none" : `1px solid ${C.border}`, padding: "14px 0" }}>

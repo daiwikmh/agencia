@@ -39,8 +39,8 @@ export function GlobalStyle() {
       .ag-spinner{width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ag-spin .7s linear infinite;display:inline-block}
       .ag-scroll-x{overflow-x:auto;scrollbar-width:none}
       .ag-scroll-x::-webkit-scrollbar{display:none}
-      .ag-bento{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
-      .ag-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:center}
+      .ag-bento{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+      .ag-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:end}
       .ag-head{display:flex;align-items:center;gap:16px}
       .ag-nav{display:flex;gap:18px;flex:1 1 auto;padding:2px 0}
       @media(max-width:1180px){.ag-bento{grid-template-columns:1fr}.ag-hero{grid-template-columns:1fr}}

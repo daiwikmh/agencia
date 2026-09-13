@@ -1,3 +1,4 @@
+import "../src/node-env.js";
 import { config } from "../src/config.js";
 import { streamPay } from "../src/agent/stream.js";
 

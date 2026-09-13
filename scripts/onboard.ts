@@ -1,3 +1,4 @@
+import "../src/node-env.js";
 import { readFileSync, writeFileSync } from "node:fs";
 import { AgenciaClient, requestWallet } from "../src/client/index.js";
 import { config } from "../src/config.js";

@@ -1,3 +1,4 @@
+import "../src/node-env.js";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";

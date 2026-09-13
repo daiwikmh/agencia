@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "agencia",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "alias": {
+    "@hashgraph/sdk": "./node_modules/@hashgraph/sdk/lib/browser.js"
+  },
+  "vars": {
+    "HEDERA_NETWORK": "hedera:testnet",
+    "HEDERA_MIRROR_NODE_URL": "https://testnet.mirrornode.hedera.com",
+    "BLOCKY402_URL": "https://api.testnet.blocky402.com",
+    "NIM_MODEL": "openai/gpt-oss-20b",
+    "NVIDIA_BASE_URL": "https://integrate.api.nvidia.com/v1",
+    "COMPUTE_ORIGIN_URL": "https://experiencing-garden-survivors-hurricane.trycloudflare.com"
+  }
+}

@@ -1,3 +1,5 @@
+const UA = { "user-agent": "Agencia/0.1 (+https://agencia.reroute-stellarbackend.workers.dev)", accept: "application/json" };
+
 export async function coinPrice(ids: string, vs: string) {
   const coins = (ids || "bitcoin,ethereum,hedera-hashgraph")
     .split(",")
@@ -8,7 +10,7 @@ export async function coinPrice(ids: string, vs: string) {
   const quote = (vs || "usd").toLowerCase();
   const res = await fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(coins)}&vs_currencies=${encodeURIComponent(quote)}&include_24hr_change=true`,
-    { signal: AbortSignal.timeout(8000) },
+    { headers: UA, signal: AbortSignal.timeout(8000) },
   );
   if (!res.ok) throw new Error(`coingecko ${res.status}`);
   const data = (await res.json()) as Record<string, Record<string, number>>;
@@ -27,7 +29,7 @@ export async function hbarPrice(vs: string) {
   const quote = (vs || "usd").toLowerCase();
   const res = await fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=hedera-hashgraph&vs_currencies=${encodeURIComponent(quote)}&include_market_cap=true&include_24hr_change=true&include_last_updated_at=true`,
-    { signal: AbortSignal.timeout(8000) },
+    { headers: UA, signal: AbortSignal.timeout(8000) },
   );
   if (!res.ok) throw new Error(`coingecko ${res.status}`);
   const data = (await res.json()) as Record<string, Record<string, number>>;

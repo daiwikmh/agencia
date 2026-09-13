@@ -114,6 +114,7 @@ export const TABS = [
   "catalog",
   "connect",
   "live",
+  "compute",
   "playground",
   "graph",
   "wallet",
@@ -147,6 +148,12 @@ export const SECTIONS: { id: Tab; label: string; icon: string; blurb: string }[]
     label: "Playground",
     icon: "▷",
     blurb: "Compose a call by hand, inspect the quote, then settle it on Hedera",
+  },
+  {
+    id: "compute",
+    label: "Compute",
+    icon: "▣",
+    blurb: "Rent metered hardware by the second and run your agent on it, settled in HBAR",
   },
   {
     id: "graph",
