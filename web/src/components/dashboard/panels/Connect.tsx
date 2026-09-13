@@ -9,6 +9,10 @@ type ClientId = "bridge" | "claude-code" | "claude-desktop" | "cursor" | "sdk" |
 const FALLBACK_SERVICE_URL =
   import.meta.env.PUBLIC_SERVICE_URL ?? "https://agencia.reroute-stellarbackend.workers.dev";
 
+function isLocal(url: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:|\/|$)/.test(url);
+}
+
 const CLIENTS: { id: ClientId; label: string; pays: boolean }[] = [
   { id: "bridge", label: "Claude / Cursor + bridge", pays: true },
   { id: "claude-code", label: "Claude Code", pays: false },
@@ -41,8 +45,10 @@ export default function Connect() {
   const [client, setClient] = useState<ClientId>("claude-code");
   const [copied, setCopied] = useState<string | null>(null);
 
-  const mcpUrl = manifestResp?.manifest?.mcp.url ?? `${FALLBACK_SERVICE_URL}/mcp`;
+  const reported = manifestResp?.manifest?.mcp.url ?? "";
+  const mcpUrl = isLocal(reported) || !reported ? `${FALLBACK_SERVICE_URL}/mcp` : reported;
   const origin = mcpUrl.replace(/\/mcp$/, "");
+  const localOnly = isLocal(reported);
   const toolCount = manifestResp?.manifest?.resources.length ?? 0;
 
   useEffect(() => {
@@ -268,6 +274,13 @@ curl -s -X POST ${mcpUrl} \\
           </p>
 
           <div style={{ height: 1, background: C.border, margin: "16px 0" }} />
+
+          {localOnly && (
+            <div style={{ marginBottom: 12, fontSize: 11.5, lineHeight: 1.6, color: C.faint, fontFamily: FF_MONO }}>
+              This dashboard is talking to a local service, but the endpoints below are the public
+              ones — they are what you give to someone else.
+            </div>
+          )}
 
           <Copyable label="MCP endpoint" value={mcpUrl} onCopy={copy} copied={copied} />
           <Copyable label="Discovery" value={`${origin}/.well-known/x402`} onCopy={copy} copied={copied} />
