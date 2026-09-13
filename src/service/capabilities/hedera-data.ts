@@ -118,9 +118,18 @@ interface MirrorExchangeRate {
   next_rate?: { cent_equivalent: number; hbar_equivalent: number };
 }
 
+/**
+ * Hedera hands out transaction ids as `0.0.x@sec.nanos`, but the mirror node
+ * only accepts `0.0.x-sec-nanos`. An agent that pastes back the id from its
+ * own payment receipt would otherwise get a 404 it already paid for.
+ */
+function toMirrorTxId(id: string): string {
+  return id.includes("@") ? id.replace("@", "-").replace(/\.(\d+)$/, "-$1") : id;
+}
+
 export async function transactionInfo(transactionId: string) {
   const data = await mget<MirrorTransactions>(
-    `/api/v1/transactions/${encodeURIComponent(transactionId)}`,
+    `/api/v1/transactions/${encodeURIComponent(toMirrorTxId(transactionId))}`,
   );
   const tx = data.transactions?.[0];
   if (!tx) throw new Error(`transaction ${transactionId} not found`);

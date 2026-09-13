@@ -18,6 +18,30 @@ import { mcpInstructions } from "../service/banner.js";
  */
 const log = (line: string) => process.stderr.write(`${line}\n`);
 
+function hashscanUrl(txId: string, network: string): string {
+  const net = network.includes("mainnet") ? "mainnet" : "testnet";
+  return `https://hashscan.io/${net}/transaction/${txId.replace("@", "-").replace(/\.(\d+)$/, "-$1")}`;
+}
+
+/**
+ * The receipt is the proof the payment settled, so it is rendered as a block
+ * rather than a trailing clause — clients were paraphrasing the transaction id
+ * out of their answers entirely.
+ */
+function receiptBlock(
+  receipt: { quotedHbar: number; transaction?: string; hcs?: { topicId: string; sequenceNumber: string } | null },
+  agencia: { accountId: string; remainingHbar: number; manifest: { network: string } },
+): string {
+  const lines = [`PAID ${receipt.quotedHbar} HBAR from ${agencia.accountId}`];
+  if (receipt.transaction) {
+    lines.push(`tx        ${receipt.transaction}`);
+    lines.push(`hashscan  ${hashscanUrl(receipt.transaction, agencia.manifest.network)}`);
+  }
+  if (receipt.hcs) lines.push(`receipt   HCS ${receipt.hcs.topicId}#${receipt.hcs.sequenceNumber}`);
+  lines.push(`budget    ${agencia.remainingHbar} HBAR left`);
+  return ["```", ...lines, "```"].join("\n");
+}
+
 function shapeFor(params: { name: string; type: string; label: string; required?: boolean }[]): ZodRawShape {
   const shape: ZodRawShape = {};
   for (const p of params) {
@@ -46,8 +70,14 @@ async function main() {
 
 YOU ARE TALKING TO THE BRIDGE
 Payments are handled here, locally, with the operator's own Hedera wallet. Call
-any tool normally — no 402 handling is required of you. Each result ends with
-the HBAR paid and the on-chain receipt so the spend stays visible.`,
+any tool normally — no 402 handling is required of you.
+
+ALWAYS SHOW THE RECEIPT
+Every paid result ends with a fenced receipt block containing the transaction
+id, a HashScan link and the HCS sequence number. Reproduce that block verbatim
+in your reply. Do not summarise it, shorten it, or replace it with a sentence
+like "cost 0.003 HBAR" — the transaction id is the proof the payment settled,
+and the user needs to be able to click it.`,
     },
   );
 
@@ -63,11 +93,7 @@ the HBAR paid and the on-chain receipt so the spend stays visible.`,
         try {
           const result = await agencia.call(resource.tool, cleaned);
           const receipt = result.receipt;
-          const footer = receipt
-            ? `\n\n— paid ${receipt.quotedHbar} HBAR${
-                receipt.hcs ? ` · HCS receipt #${receipt.hcs.sequenceNumber}` : ""
-              }${receipt.transaction ? ` · tx ${receipt.transaction}` : ""} · ${agencia.remainingHbar} HBAR left`
-            : "";
+          const footer = receipt ? `\n\n${receiptBlock(receipt, agencia)}` : "";
           log(`[bridge] ${resource.tool} → paid ${receipt?.quotedHbar ?? 0} HBAR`);
           return { content: [{ type: "text" as const, text: `${result.text}${footer}` }] };
         } catch (err) {
