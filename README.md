@@ -138,8 +138,6 @@ The agent holds **one credential: a Hedera keypair.** It fetches `/.well-known/x
 
 Nobody told it `hbar_price` existed. Every step is receipted on HCS. The **Live run** tab streams this over SSE, one card per phase — identity → discovery → 402 → signature → settlement → HCS receipt.
 
-<div align="center"><img src="docs/img/live-run-goal.png" alt="Live run — agent discovering and paying" width="860" /></div>
-
 ### Compute — rent hardware by the second
 
 A lease is a session, not a one-shot call: **open → exec → tick → end.**
