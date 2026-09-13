@@ -22,6 +22,25 @@ export function computeOrigin(): string | null {
   return originUrl();
 }
 
+let reachability: { ok: boolean; at: number } | null = null;
+
+/** Is a compute origin actually answering right now? Cached for 30s. */
+export async function computeReachable(): Promise<boolean> {
+  const origin = originUrl();
+  if (!origin) return false;
+  if (reachability && Date.now() - reachability.at < 30_000) return reachability.ok;
+
+  let ok = false;
+  try {
+    const res = await fetch(`${origin}/health`, { signal: AbortSignal.timeout(4000) });
+    ok = res.ok;
+  } catch {
+    ok = false;
+  }
+  reachability = { ok, at: Date.now() };
+  return ok;
+}
+
 /**
  * Forward a tools/call verbatim to a compute-capable origin so the origin runs
  * its own x402 handshake, settlement and HCS receipt. Returns null when no

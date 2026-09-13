@@ -9,7 +9,7 @@ import {
 } from "../src/service/capabilities/hedera-data.js";
 import { coinPrice, hbarPrice } from "../src/service/capabilities/price.js";
 import { dnsLookup, githubRepo, readUrl } from "../src/service/capabilities/external.js";
-import { queryGraph } from "../src/service/capabilities/graph.js";
+import { askGraph, introspectSchema, queryGraph } from "../src/service/capabilities/graph.js";
 import { runInference } from "../src/service/capabilities/inference.js";
 import { runOpenAIInference } from "../src/service/capabilities/openai.js";
 
@@ -45,6 +45,11 @@ export const RUNNERS: Record<string, ToolRunner> = {
   github_repo: async (a) => githubRepo(str(a.owner), str(a.repo)),
   graph_query: async (a) =>
     queryGraph(str(a.subgraph), str(a.query), a.variables ? str(a.variables) : undefined),
+  graph_schema: async (a) => introspectSchema(str(a.subgraph)),
+  graph_ask: async (a) =>
+    askGraph(str(a.subgraph), str(a.question), async (prompt, maxTokens) =>
+      (await runInference({ prompt, max_tokens: maxTokens })).text,
+    ),
 };
 
 export interface ToolDef {

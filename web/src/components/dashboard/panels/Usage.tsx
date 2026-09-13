@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PaymentGraph from "./PaymentGraph.js";
 import { Badge, Card, Empty, SectionTitle, StatTile } from "../ui.js";
 import { C, FF_HEAD, FF_MONO } from "../theme.js";
 import { fmtHbar, shortId, timeAgo } from "../format.js";
@@ -88,9 +89,7 @@ export default function Usage() {
   }, [events, now]);
 
   const maxBucket = Math.max(...buckets.map((b) => b.hbar), Number.EPSILON);
-  const byTool = groupBy(events, (e) => e.tool);
   const byCategory = groupBy(events, (e) => toolCategory.get(e.tool) ?? "Other");
-  const byPayer = groupBy(events, (e) => e.payer).slice(0, 6);
 
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -205,87 +204,26 @@ export default function Usage() {
             </Card>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-              gap: 16,
-            }}
-          >
-            <div>
-              <SectionTitle>By tool</SectionTitle>
-              <Card pad={0}>
-                {byTool.map((g) => {
-                  const color = CATEGORY_COLOR[toolCategory.get(g.key) ?? ""] ?? CATEGORY_COLOR_FALLBACK;
-                  const pct = totalHbar > 0 ? (g.hbar / totalHbar) * 100 : 0;
-                  return (
-                    <div
-                      key={g.key}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "11px 16px",
-                        borderBottom: `1px solid ${C.border}`,
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
-                          <span style={{ fontSize: 12.5, color: C.ink, fontFamily: FF_MONO }}>{g.key}</span>
-                        </div>
-                        <div style={{ fontSize: 10.5, color: C.faint, fontFamily: FF_MONO, marginTop: 2, marginLeft: 14 }}>
-                          {g.calls} call{g.calls === 1 ? "" : "s"} · {pct.toFixed(0)}%
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 12.5, color: C.green, fontFamily: FF_HEAD, fontWeight: 700 }}>
-                        {fmtHbar(g.hbar)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </Card>
-            </div>
-
-            <div>
-              <SectionTitle>Top payers</SectionTitle>
-              <Card pad={0}>
-                {byPayer.length ? (
-                  byPayer.map((g) => {
-                    const pct = totalHbar > 0 ? (g.hbar / totalHbar) * 100 : 0;
-                    return (
-                      <div
-                        key={g.key}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "11px 16px",
-                          borderBottom: `1px solid ${C.border}`,
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, color: C.ink, fontFamily: FF_MONO }}>
-                            {shortId(g.key)}
-                          </div>
-                          <div style={{ fontSize: 10.5, color: C.faint, fontFamily: FF_MONO, marginTop: 2 }}>
-                            {g.calls} call{g.calls === 1 ? "" : "s"} · {pct.toFixed(0)}%
-                          </div>
-                        </div>
-                        <span style={{ fontSize: 12.5, color: C.green, fontFamily: FF_HEAD, fontWeight: 700 }}>
-                          {fmtHbar(g.hbar)}
-                        </span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div style={{ padding: 16 }}>
-                    <Empty text="No payers yet." />
-                  </div>
-                )}
-              </Card>
-            </div>
+          <div>
+            <SectionTitle>Payment network</SectionTitle>
+            <Card pad="22px 24px">
+              <p
+                style={{
+                  margin: "0 0 6px",
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: C.muted,
+                  maxWidth: 620,
+                }}
+              >
+                Every settled payment on the HCS trail, drawn as a graph: hollow nodes are paying
+                agents, filled nodes are the tools they bought, and each edge is a payment route
+                weighted by HBAR. Node size is total volume.
+              </p>
+              <PaymentGraph events={events} toolCategory={toolCategory} />
+            </Card>
           </div>
+
         </>
       )}
 

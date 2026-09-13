@@ -81,6 +81,35 @@ export function hashscanTx(txId: string): string {
   return `${serverConfig.hashscanBase}/transaction/${mirrorId}`;
 }
 
+/**
+ * Cumulative spend guard.
+ *
+ * The per-call check below only ever compared ONE quote against the budget, so
+ * a public deployment with a funded wallet could be drained by repeating cheap
+ * calls forever. This tracks the running total instead.
+ *
+ * Caveat worth knowing: on serverless this lives in one instance's memory and
+ * resets on a cold start, so it limits a burst, not a determined attacker over
+ * time. The real protection for a public deployment is keeping the hot wallet
+ * small — treat it as a float, not a treasury.
+ */
+const spendWindow = { total: 0, since: Date.now() };
+
+function spendGuard(quotedHbar: number): string | null {
+  const cap = serverConfig.agent.budgetHbar;
+  if (cap <= 0) return null;
+
+  const elapsedHours = (Date.now() - spendWindow.since) / 3_600_000;
+  if (elapsedHours >= 1) {
+    spendWindow.total = 0;
+    spendWindow.since = Date.now();
+  }
+  if (spendWindow.total + quotedHbar > cap) {
+    return `this deployment has spent ${spendWindow.total.toFixed(4)} of its ${cap} HBAR hourly budget — ${quotedHbar} HBAR refused`;
+  }
+  return null;
+}
+
 let sdkClient: x402Client | null = null;
 export function paymentClient(): x402Client {
   if (sdkClient) return sdkClient;
@@ -153,13 +182,9 @@ export async function runPaidCall(
         steps,
       };
     }
-    if (serverConfig.agent.budgetHbar > 0 && quotedHbar > serverConfig.agent.budgetHbar) {
-      return {
-        ok: false,
-        tool,
-        error: `quote ${quotedHbar} HBAR exceeds agent budget ${serverConfig.agent.budgetHbar} HBAR`,
-        steps,
-      };
+    const refused = spendGuard(quotedHbar);
+    if (refused) {
+      return { ok: false, tool, error: refused, steps };
     }
 
     let token: string;
@@ -172,6 +197,7 @@ export async function runPaidCall(
     }
 
     result = await call(token);
+    if (!result.isError) spendWindow.total += quotedHbar;
     if (result.isError) {
       return {
         ok: false,

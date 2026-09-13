@@ -8,6 +8,7 @@
     "server": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "onboard": "tsx scripts/onboard.ts",
+    "bridge": "tsx src/client/bridge.ts",
     "agent": "tsx src/agent/run.ts",
     "lease": "tsx src/agent/lease.ts",
     "goal": "tsx src/agent/goal.ts",

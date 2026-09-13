@@ -7,9 +7,14 @@ import { registerPriceTools } from "./tools/price.js";
 import { registerExternalTools } from "./tools/external.js";
 import { registerGraphTools } from "./tools/graph.js";
 import { registerComputeTools } from "./tools/compute.js";
+import { mcpInstructions } from "../banner.js";
+import { CATALOG } from "../catalog.js";
 
 export function buildMcpServer(origin: string): McpServer {
-  const server = new McpServer({ name: "agencia", version: "0.1.0" });
+  const server = new McpServer(
+    { name: "agencia", version: "0.1.0" },
+    { instructions: mcpInstructions(origin, CATALOG.length) },
+  );
   registerDiscoverTool(server, origin);
   registerInferTool(server);
   registerOpenAITool(server);

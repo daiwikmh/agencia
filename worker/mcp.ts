@@ -9,9 +9,10 @@ import {
   decodePayment,
 } from "../src/x402.js";
 import { buildManifest } from "../src/service/manifest.js";
+import { mcpInstructions } from "../src/service/banner.js";
 import { RUNNERS, quoteFor, toolDefinitions } from "./tools.js";
 import { recordSettlement } from "./receipts.js";
-import { computeOrigin, isComputeTool, pendingComputeResult, proxyComputeCall } from "./compute-proxy.js";
+import { computeReachable, isComputeTool, pendingComputeResult, proxyComputeCall } from "./compute-proxy.js";
 
 const AGENT_ID_META = "agencia/agent-id";
 const PROTOCOL_VERSION = "2024-11-05";
@@ -160,13 +161,15 @@ export async function handleMcp(request: Request, origin: string): Promise<Respo
             protocolVersion: PROTOCOL_VERSION,
             capabilities: { tools: { listChanged: false } },
             serverInfo: { name: "agencia", version: "0.1.0" },
+            instructions: mcpInstructions(origin, toolDefinitions().length),
           }),
         );
         break;
       case "ping":
         responses.push(ok(message.id, {}));
         break;
-      case "tools/list":
+      case "tools/list": {
+        const computeLive = await computeReachable();
         responses.push(
           ok(message.id, {
             tools: [
@@ -176,7 +179,7 @@ export async function handleMcp(request: Request, origin: string): Promise<Respo
                 inputSchema: { type: "object", properties: {} },
               },
               ...toolDefinitions().map(({ priced, ...tool }) => tool),
-              ...(computeOrigin()
+              ...(computeLive
                 ? [
                     {
                       name: "compute_lease",
@@ -199,6 +202,7 @@ export async function handleMcp(request: Request, origin: string): Promise<Respo
           }),
         );
         break;
+      }
       case "tools/call":
         try {
           responses.push(ok(message.id, await callTool(message.params ?? {}, origin)));

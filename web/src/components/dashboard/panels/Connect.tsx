@@ -4,12 +4,13 @@ import { C, FF_HEAD, FF_MONO } from "../theme.js";
 import { useResource } from "../store.js";
 import type { ManifestResp } from "../types.js";
 
-type ClientId = "claude-code" | "claude-desktop" | "cursor" | "sdk" | "raw";
+type ClientId = "bridge" | "claude-code" | "claude-desktop" | "cursor" | "sdk" | "raw";
 
 const FALLBACK_SERVICE_URL =
   import.meta.env.PUBLIC_SERVICE_URL ?? "https://agencia.reroute-stellarbackend.workers.dev";
 
 const CLIENTS: { id: ClientId; label: string; pays: boolean }[] = [
+  { id: "bridge", label: "Claude / Cursor + bridge", pays: true },
   { id: "claude-code", label: "Claude Code", pays: false },
   { id: "claude-desktop", label: "Claude Desktop", pays: false },
   { id: "cursor", label: "Cursor", pays: false },
@@ -79,6 +80,29 @@ export default function Connect() {
   };
 
   const snippets: Record<ClientId, { title: string; body: string; note: string }> = {
+    bridge: {
+      title: "Let Claude actually buy — run the paying bridge",
+      body: `# 1. clone + install, then point it at this service
+git clone https://github.com/daiwikmh/agencia && cd agencia && npm install
+echo 'AGENCIA_SERVICE_URL=${origin}' >> .env
+
+# 2. get a funded wallet (skip if you already have one in .env)
+npm run onboard
+
+# 3. add the bridge to Claude Code
+claude mcp add agencia -- npx tsx /ABSOLUTE/PATH/agencia/src/client/bridge.ts
+
+# Claude Desktop / Cursor — stdio entry instead:
+{
+  "mcpServers": {
+    "agencia": {
+      "command": "npx",
+      "args": ["tsx", "/ABSOLUTE/PATH/agencia/src/client/bridge.ts"]
+    }
+  }
+}`,
+      note: "The bridge holds the wallet and answers the 402s locally, so the client just calls tools and gets results — each one ending with the HBAR paid and its HCS receipt. Ask it to run wallet_status to see which account is paying.",
+    },
     "claude-code": {
       title: "One command",
       body: `claude mcp add --transport http agencia ${mcpUrl}`,
@@ -139,6 +163,24 @@ curl -s -X POST ${mcpUrl} \\
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <SectionTitle style={{ marginBottom: 0 }}>Point an agent at this service</SectionTitle>
+
+      <Card pad="18px 24px">
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <span style={{ fontSize: 14, fontFamily: FF_HEAD, color: C.white }}>
+            Two different wallets, on purpose
+          </span>
+          <Badge tone="neutral">read this first</Badge>
+        </div>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: C.muted }}>
+          <strong style={{ color: C.ink }}>MetaMask</strong>, in the top right, signs you in — it
+          maps your address to a Hedera account so this console knows who you are. It cannot pay:
+          x402 settles with a partially-signed native Hedera transfer, and MetaMask only signs
+          Ethereum-prefixed messages.{" "}
+          <strong style={{ color: C.ink }}>The Hedera keypair below</strong> is what actually buys —
+          you hand it to the MCP bridge, which answers the 402s on your client's behalf. Issue it
+          once, keep it local, and never paste it into this dashboard.
+        </p>
+      </Card>
 
       <div
         style={{

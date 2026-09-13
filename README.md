@@ -16,11 +16,12 @@
 [![HCS audit](https://img.shields.io/badge/Audit-HCS%20receipts-8259ef)](https://docs.hedera.com/hedera/core-concepts/consensus-service)
 [![The Graph](https://img.shields.io/badge/Data-The%20Graph-6f4cff)](https://thegraph.com)
 [![MCP](https://img.shields.io/badge/Protocol-MCP-111111)](https://modelcontextprotocol.io)
-[![Live on Workers](https://img.shields.io/badge/Live-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://agencia.reroute-stellarbackend.workers.dev/health)
+[![Live on Workers](https://img.shields.io/badge/Service-Cloudflare%20Workers-F38020?logo=cloudflare&logoColor=white)](https://agencia.reroute-stellarbackend.workers.dev/health)
+[![Dashboard on Vercel](https://img.shields.io/badge/Dashboard-Vercel-000000?logo=vercel&logoColor=white)](https://0xagencia.vercel.app)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Astro](https://img.shields.io/badge/Astro-5-ff5d01?logo=astro&logoColor=white)](https://astro.build)
 
-**Live endpoint —** [`agencia.reroute-stellarbackend.workers.dev`](https://agencia.reroute-stellarbackend.workers.dev/health) · [manifest](https://agencia.reroute-stellarbackend.workers.dev/.well-known/x402) · MCP at `/mcp`
+**Dashboard —** [`0xagencia.vercel.app`](https://0xagencia.vercel.app)  ·  **Service —** [`agencia.reroute-stellarbackend.workers.dev`](https://agencia.reroute-stellarbackend.workers.dev/health) · [manifest](https://agencia.reroute-stellarbackend.workers.dev/.well-known/x402) · MCP at `/mcp`
 
 </div>
 
@@ -46,7 +47,7 @@ It runs in both directions. **Consumers** buy inference, on-chain data and sandb
 
 ## Features
 
-### 🛒 The catalog — 16 priced tools, 8 categories
+### 🛒 The catalog — 19 priced tools, 8 categories
 
 Every row is a real paid MCP tool through the same `registerPaidTool` wrapper: **402 → verify → run → settle → HCS receipt**.
 
@@ -67,6 +68,9 @@ Every row is a real paid MCP tool through the same `registerPaidTool` wrapper: *
 | `web_read` | Web | Fetch a URL, return title + readable text | `0.01` |
 | `dns_lookup` | Web | Resolve DNS over Cloudflare DoH | `0.004` |
 | `graph_query` | The Graph | GraphQL against any subgraph | `0.01` |
+| `graph_schema` | The Graph | Introspect a subgraph's entities and fields | `0.005` |
+| `graph_ask` | The Graph | **Plain-English question → GraphQL → live data → answer** | `0.04` |
+| `graph_analyze` | The Graph | **Live subgraph rows, computed on hardware you rent by the second** | `0.06` + `0.0015`/s |
 | `github_repo` | Dev | Stars, forks, issues, license for a repo | `0.005` |
 
 Plus four **free** tools that need no payment: `discover`, `compute_exec`, `compute_end`, `compute_providers`.
@@ -74,6 +78,29 @@ Plus four **free** tools that need no payment: `discover`, `compute_exec`, `comp
 Prices are computed per call — `infer` scales with `max_tokens`, `hedera_topic` with messages returned, `compute_lease` with seconds × vCPU. Nothing is a flat per-request tax.
 
 <div align="center"><img src="docs/img/catalog.png" alt="Agencia catalog" width="860" /></div>
+
+### 🔬 The Graph × compute — analysis, not lookups
+
+A GraphQL response tells you *what is*. `graph_analyze` works out *what it means*, and it needs both halves of the stack:
+
+1. **introspect** the subgraph schema
+2. a model **writes the GraphQL** for your analytical goal
+3. run it against **live Graph data** through the gateway
+4. **rent a sandbox by the second** and push the rows into it
+5. a model **writes a program for that question**; it runs *on the rented box*
+6. a model **explains what the computation found**, citing the numbers
+
+One call, priced `0.06 ℏ + 0.0015 ℏ/compute-second`, settled once on Hedera. Verified against the live Uniswap V3 subgraph — 10 pools pulled, analysed on a container, closed, HCS receipt `#58`:
+
+```
+=== TVL Concentration Report ===
+Top 3 pools hold 99.82% of total TVL
+Top 10 pools hold 100.00% of total TVL
+```
+
+The script is written per question and never leaves the box; if it crashes, the error goes back to the model once. **If the analysis fails, you are not charged** — the tool errors before settlement.
+
+> **Read the output critically:** ordering Uniswap pools by `totalValueLockedUSD` surfaces spam pools with absurd valuations, so the figures above are arithmetically correct on garbage input. Production analysis should filter by `volumeUSD` or a token whitelist. The pipeline is sound; the default query is naive.
 
 ### 🛰️ On-chain discovery — no URL required
 
@@ -188,11 +215,76 @@ no wallet configured — requesting one from the service…
 
 <div align="center"><img src="docs/img/connect.png" alt="Connect — wallet, endpoint, client" width="860" /></div>
 
-### 📊 The dashboard — 10 tabs
+### 🎛️ It introduces itself
 
-**Catalog** · **Connect** · **Live run** · **Compute** · **Playground** · **The Graph** · **Wallet** · **Budgets** · **Usage** · **HCS audit trail**
+`curl` the service, or connect any MCP client, and the first thing you get is how the money works — the protocol's `instructions` field carries it, so clients show it on connect:
 
-A wallet menu in the corner carries balance, session spend, caps, copy-id, HashScan and wallet issuance. Budgets are enforced **server-side before a payment is built**. Usage charts are derived from the on-chain HCS trail, not from local state.
+```
+╔════════════════════════════════════════════════════╗
+║     ▄▀█ █▀▀ █▀▀ █▄░█ █▀▀ █ ▄▀█                     ║
+║     █▀█ █▄█ ██▄ █░▀█ █▄▄ █ █▀█                     ║
+║     pay-per-call services on Hedera, gated by      ║
+║     x402. no API key. no subscription. no seat.    ║
+╚════════════════════════════════════════════════════╝
+```
+
+…followed by the 402 handshake in three steps, the free tools to call first, the
+lease lifecycle, and a plain warning that most MCP clients can quote but not pay.
+
+### 🔌 Connecting a client
+
+The **Connect** tab carries copy-paste config for every client, and is honest about the ceiling — a normal MCP client can discover and call, but only an x402-capable one completes a purchase.
+
+```bash
+# Claude Code
+claude mcp add --transport http agencia https://your-endpoint/mcp
+```
+
+```jsonc
+// Claude Desktop — claude_desktop_config.json     // Cursor — ~/.cursor/mcp.json
+{ "mcpServers": { "agencia": {                     { "mcpServers": { "agencia": {
+    "type": "http",                                    "type": "streamable-http",
+    "url": "https://your-endpoint/mcp" } } }           "url": "https://your-endpoint/mcp" } } }
+```
+
+| Client | Lists tools | Reads prices | Gets the 402 quote | Completes payment |
+|---|---|---|---|---|
+| Claude Code · Desktop · Cursor, pointed straight at `/mcp` | ✅ | ✅ | ✅ | ❌ |
+| **The same clients via `npm run bridge`** | ✅ | ✅ | — handled for you | ✅ |
+| `AgenciaClient` / `npm run goal` / the dashboard | ✅ | ✅ | ✅ | ✅ |
+
+### The bridge — make any MCP client able to pay
+
+Claude and Cursor speak MCP but not x402, so pointed at the service directly they can
+quote and never buy. `npm run bridge` is a **local stdio MCP server that holds the
+wallet**: it mirrors every priced tool, answers the 402 itself, and hands the result
+back with the receipt attached. The client never sees a payment.
+
+```bash
+npm run onboard                 # funded wallet, once
+claude mcp add agencia -- npx tsx /ABS/PATH/agencia/src/client/bridge.ts
+```
+
+```jsonc
+// Claude Desktop / Cursor — stdio entry
+{ "mcpServers": { "agencia": {
+    "command": "npx",
+    "args": ["tsx", "/ABS/PATH/agencia/src/client/bridge.ts"] } } }
+```
+
+Every answer ends with what it cost:
+
+```
+… — paid 0.003 HBAR · HCS receipt #60 · tx 0.0.7162784@1789301469 · 4.997 HBAR left
+```
+
+Ask it `wallet_status` to see which account is paying and what budget remains.
+
+### 📊 The dashboard — 9 tabs
+
+**Catalog** · **Connect** · **Live run** · **Compute** · **Playground** · **The Graph** · **Budgets** · **Usage** · **HCS audit trail**
+
+The wallet lives in the corner menu rather than a tab — balance, HTS token count, session spend, caps, copy-id, HashScan and wallet issuance, one click from any page. Budgets are enforced **server-side before a payment is built**. Usage charts are derived from the on-chain HCS trail, not from local state.
 
 ---
 
@@ -394,6 +486,8 @@ npx wrangler secret bulk secrets.json   # operator key, topic id, NVIDIA key
 npx wrangler deploy                     # → agencia.<subdomain>.workers.dev
 ```
 
+The dashboard deploys to **Vercel** from the `web/` directory (`@astrojs/vercel` adapter — pin `^9` for Astro 5; v11 requires Astro 7). Vercel's **Root Directory must be set to `web`**, and `AGENCIA_SERVICE_URL` is **required**, not optional: the server-side API routes default to `http://localhost:3022` and every panel fails without it. `AGENT_PRIVATE_KEY` goes in as an encrypted env var — the dashboard signs x402 payments server-side.
+
 Three things had to be true to make this work, and all three are verified live:
 
 | Concern | Resolution |
@@ -419,6 +513,11 @@ Verified end to end: a lease opened **through** `agencia.…workers.dev`, a comm
 
 The agent's private key never reaches a browser — the dashboard proxies the whole pay flow through its own backend. Budget caps are checked **before** a transaction is built. Sandboxes run non-root with dropped capabilities, a read-only rootfs, and CPU/memory/pid/wall-clock ceilings; orphaned containers are swept on boot. Wallet issuance is testnet-only and rate-limited, and issued keys are returned once and never stored. Every settled call and every supplier payout lands on an append-only HCS topic that anyone can read.
 
+**Deploying the dashboard publicly?** Two things bite, and both are handled:
+
+- **Secrets are never bundled.** Server code reads `process.env` only and never touches `import.meta.env` — referencing it makes Vite materialise the whole loaded `.env` into the built server chunk, baking real keys into an artifact that ships wherever it goes. Local values reach `process.env` via `loadEnv` in `astro.config.mjs`. A scan of all 2,382 build files finds no secret value.
+- **Spend is capped cumulatively, not per call.** The dashboard signs with a server-side key, so every visitor spends *your* HBAR. `AGENT_BUDGET_HBAR` is now a running hourly total, not a per-call ceiling — without that, unlimited cheap calls drain the wallet while each one passes the check. On serverless this lives in one instance's memory and resets on a cold start, so it limits a burst, not a determined attacker: **keep the hot wallet small and treat it as a float, not a treasury.**
+
 **Known gap:** leased sandboxes currently have unrestricted network egress (the box needs to reach the service to pay for inference from inside). Locking that to an allowlist is the next security task.
 
 ---
@@ -434,7 +533,9 @@ The agent's private key never reaches a browser — the dashboard proxies the wh
 | **Full x402 paid round trip** | ✅ **live on testnet** — verify + settle + on-chain submit |
 | `infer` (NVIDIA NIM) · `infer_openai` | ✅ live — real paid completions settled |
 | Data tools (`hedera_*`, `*_price`, `web_read`, `dns_lookup`, `github_repo`) | ✅ tested against live upstreams |
-| `graph_query` | 🟡 plumbing verified against the live gateway; a real query needs a subgraph URL or `GRAPH_API_KEY` |
+| **Live subgraph data through the gateway** | ✅ live — Uniswap V3 subgraph at block `25968230`, 23 entities introspected |
+| **`graph_analyze` — Graph data computed on rented hardware** | ✅ live — 10 pools analysed on a leased container, HCS receipt `#58`, lease closed |
+| `graph_ask` · `graph_query` · `graph_schema` | ✅ live against the gateway with `GRAPH_API_KEY` |
 | **Compute lease → exec → tick → end** | ✅ live — e.g. HCS receipts `#31`, `#32`, container reaped on close |
 | **Supplier payout** | ✅ live — 70/30 split paid on-chain with its own HCS receipt |
 | **On-chain service discovery (HCS registry)** | ✅ live — agent found the service from a topic id alone and paid it, HCS receipt `#56` |

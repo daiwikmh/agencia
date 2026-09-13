@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { GlobalStyle } from "./GlobalStyle.js";
-import WalletMenu from "./WalletMenu.js";
+import MetaMaskMenu from "./MetaMaskMenu.js";
 import { C, FF_BODY, FF_HEAD, FF_MONO } from "./theme.js";
 import { Badge, Card, Empty, Fact, FactRow } from "./ui.js";
 import { fmtHbar, shortId, timeAgo } from "./format.js";
@@ -165,7 +165,7 @@ export default function Shell({ active, children }: { active: Tab; children: Rea
           >
             ▷
           </a>
-          <WalletMenu />
+          <MetaMaskMenu />
         </header>
 
         <div className="ag-bento">
@@ -611,13 +611,7 @@ function Ticks({ calls }: { calls: SessionCall[] }) {
         return (
           <span
             key={i}
-            style={{
-              flex: 1,
-              height: c ? 34 : 22,
-              background: tone,
-              borderRadius: 1,
-              minWidth: 1,
-            }}
+            style={{ flex: 1, height: c ? 34 : 22, background: tone, borderRadius: 1, minWidth: 1 }}
           />
         );
       })}

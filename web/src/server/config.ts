@@ -1,7 +1,16 @@
+/**
+ * Runtime env only, for anything that could be a secret.
+ *
+ * Deliberately never reads `import.meta.env`: merely referencing it makes Vite
+ * materialise the entire loaded .env into the built server chunk, baking real
+ * secrets into an artifact that then ships wherever it goes. Local values reach
+ * process.env through astro.config.mjs instead.
+ */
 function env(key: string, fallback = ""): string {
-  const fromProcess = typeof process !== "undefined" ? process.env[key] : undefined;
-  const fromMeta = (import.meta.env as Record<string, string | undefined>)[key];
-  return fromProcess ?? fromMeta ?? fallback;
+  const fromProcess = typeof process !== "undefined" ? process.env?.[key] : undefined;
+  if (fromProcess != null && fromProcess !== "") return fromProcess;
+
+  return fallback;
 }
 
 export const serverConfig = {

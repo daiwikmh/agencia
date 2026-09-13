@@ -13,6 +13,7 @@
     "@astrojs/react": "^4.2.0",
     "@astrojs/vercel": "^9.0.5",
     "@hashgraph/sdk": "^2.62.0",
+    "@metamask/sdk": "^0.34.0",
     "@modelcontextprotocol/sdk": "^1.18.2",
     "@x402/core": "^2.25.0",
     "@x402/hedera": "^2.25.0",

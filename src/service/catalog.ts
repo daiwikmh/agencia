@@ -215,6 +215,81 @@ export const CATALOG: CatalogEntry[] = [
     pricing: { model: "per-query", perCallHbar: 0.01, unit: "HBAR" },
   },
   {
+    name: "graph_schema",
+    title: "Subgraph schema",
+    category: "The Graph",
+    description:
+      "Introspect any subgraph and return its entities and fields — what an agent needs before it can write a correct GraphQL query.",
+    params: [
+      {
+        name: "subgraph",
+        type: "string",
+        label: "Subgraph URL or ID",
+        required: true,
+        placeholder: "https://api.studio.thegraph.com/query/.../.../version/latest",
+      },
+    ],
+    pricing: { model: "per-query", perCallHbar: 0.005, unit: "HBAR" },
+  },
+  {
+    name: "graph_ask",
+    title: "Ask a subgraph",
+    category: "The Graph",
+    featured: true,
+    description:
+      "Ask a subgraph a question in plain English. Introspects the schema, writes the GraphQL, runs it against live Graph data, and answers from the result.",
+    params: [
+      {
+        name: "subgraph",
+        type: "string",
+        label: "Subgraph URL or ID",
+        required: true,
+        placeholder: "https://api.studio.thegraph.com/query/.../.../version/latest",
+      },
+      {
+        name: "question",
+        type: "string",
+        label: "Question",
+        required: true,
+        multiline: true,
+        placeholder: "Which 5 pools have the highest total value locked?",
+      },
+    ],
+    pricing: { model: "per-question (schema + generation + query + answer)", perCallHbar: 0.04, unit: "HBAR" },
+  },
+  {
+    name: "graph_analyze",
+    title: "Analyse a subgraph on rented hardware",
+    category: "The Graph",
+    featured: true,
+    description:
+      "Ask an analytical question about a subgraph. Pulls live rows from The Graph, rents a sandbox by the second, runs a program written for your question on that box, and explains what it computed.",
+    params: [
+      {
+        name: "subgraph",
+        type: "string",
+        label: "Subgraph URL or ID",
+        required: true,
+        placeholder: "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV",
+      },
+      {
+        name: "goal",
+        type: "string",
+        label: "What should it work out?",
+        required: true,
+        multiline: true,
+        placeholder: "How concentrated is liquidity across the top pools?",
+      },
+      { name: "seconds", type: "number", label: "Compute seconds", default: 60, min: 20, max: 300 },
+    ],
+    pricing: {
+      model: "per-analysis + per compute-second",
+      perCallHbar: 0.06,
+      perSecondHbar: 0.0015,
+      unit: "HBAR",
+    },
+  },
+  {
     name: "compute_lease",
     title: "Compute lease",
     category: "Compute",
