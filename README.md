@@ -47,7 +47,7 @@ It runs in both directions. **Consumers** buy inference, on-chain data and sandb
 
 ## Features
 
-### 🛒 The catalog — 19 priced tools, 8 categories
+### The catalog — 19 priced tools, 8 categories
 
 Every row is a real paid MCP tool through the same `registerPaidTool` wrapper: **402 → verify → run → settle → HCS receipt**.
 
@@ -79,7 +79,7 @@ Prices are computed per call — `infer` scales with `max_tokens`, `hedera_topic
 
 <div align="center"><img src="docs/img/catalog.png" alt="Agencia catalog" width="860" /></div>
 
-### 🔬 The Graph × compute — analysis, not lookups
+### The Graph × compute — analysis, not lookups
 
 A GraphQL response tells you *what is*. `graph_analyze` works out *what it means*, and it needs both halves of the stack:
 
@@ -102,7 +102,7 @@ The script is written per question and never leaves the box; if it crashes, the 
 
 > **Read the output critically:** ordering Uniswap pools by `totalValueLockedUSD` surfaces spam pools with absurd valuations, so the figures above are arithmetically correct on garbage input. Production analysis should filter by `volumeUSD` or a token whitelist. The pipeline is sound; the default query is naive.
 
-### 🛰️ On-chain discovery — no URL required
+### On-chain discovery — no URL required
 
 A service announces itself to a **Hedera consensus topic**. An agent that knows only the topic id reads the registry off the mirror node, picks a service, fetches its catalog and pays it — nobody hands it an endpoint:
 
@@ -124,7 +124,7 @@ $ npm run find
 
 The announcement is a compact pointer (627 bytes, one HCS message) — identity, endpoint, payTo, tool count and price floor — with the full catalog left at `/.well-known/x402`. Any service can publish to the same topic; the registry is a public consensus log, not our database.
 
-### 🤖 The autonomous agent — discovery you can watch
+### The autonomous agent — discovery you can watch
 
 `npm run goal "what is HBAR worth, and how much does 0.0.10500124 hold?"`
 
@@ -140,7 +140,7 @@ Nobody told it `hbar_price` existed. Every step is receipted on HCS. The **Live 
 
 <div align="center"><img src="docs/img/live-run-goal.png" alt="Live run — agent discovering and paying" width="860" /></div>
 
-### 🖥️ Compute — rent hardware by the second
+### Compute — rent hardware by the second
 
 A lease is a session, not a one-shot call: **open → exec → tick → end.**
 
@@ -166,7 +166,7 @@ Hardware inventory is read live from the runtime (`docker info`), not declared i
 
 <div align="center"><img src="docs/img/compute.png" alt="Compute — hardware inventory and terminal" width="860" /></div>
 
-### 🤝 The supplier side — an allowlist marketplace
+### The supplier side — an allowlist marketplace
 
 Agencia doesn't integrate vendor SDKs; **suppliers integrate Agencia.** Anyone with a machine runs one script:
 
@@ -192,7 +192,7 @@ The same contract is how third-party clouds plug in. `src/service/compute/direct
 | Shadeform · Prime Intellect | aggregator | 20–30+ clouds | shim |
 | Vast.ai · Akash · Nosana · io.net | GPU marketplace | spot / on-chain lease | shim |
 
-### 💸 Two payment rails
+### Two payment rails
 
 | Rail | Shape | Use it for |
 |---|---|---|
@@ -201,7 +201,7 @@ The same contract is how third-party clouds plug in. `src/service/compute/direct
 
 The dashboard drives both: a **stream payments** toggle auto-pays lease ticks as expiry approaches, and the **Streamed payments** card fires scheduled transfers with live HashScan links.
 
-### 🔑 Onboarding — zero to paying
+### Onboarding — zero to paying
 
 `POST /onboard` mints a real ECDSA testnet account, funds it, returns the key **once**, and keeps no copy (testnet-only, rate-limited, disableable).
 
@@ -215,7 +215,7 @@ no wallet configured — requesting one from the service…
 
 <div align="center"><img src="docs/img/connect.png" alt="Connect — wallet, endpoint, client" width="860" /></div>
 
-### 🎛️ It introduces itself
+### It introduces itself
 
 `curl` the service, or connect any MCP client, and the first thing you get is how the money works — the protocol's `instructions` field carries it, so clients show it on connect:
 
@@ -231,7 +231,7 @@ no wallet configured — requesting one from the service…
 …followed by the 402 handshake in three steps, the free tools to call first, the
 lease lifecycle, and a plain warning that most MCP clients can quote but not pay.
 
-### 🔌 Connecting a client
+### Connecting a client
 
 The **Connect** tab carries copy-paste config for every client, and is honest about the ceiling — a normal MCP client can discover and call, but only an x402-capable one completes a purchase.
 
@@ -280,7 +280,7 @@ Every answer ends with what it cost:
 
 Ask it `wallet_status` to see which account is paying and what budget remains.
 
-### 📊 The dashboard — 9 tabs
+### The dashboard — 9 tabs
 
 **Catalog** · **Connect** · **Live run** · **Compute** · **Playground** · **The Graph** · **Budgets** · **Usage** · **HCS audit trail**
 
@@ -288,7 +288,7 @@ The wallet lives in the corner menu rather than a tab — balance, HTS token cou
 
 ---
 
-## 🏛️ Architecture
+## Architecture
 
 ```mermaid
 sequenceDiagram
@@ -349,7 +349,7 @@ Defined once per tool in `src/service/catalog.ts`, read by both the manifest and
 
 ---
 
-## 🌐 Endpoints
+## Endpoints
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -367,117 +367,7 @@ Defined once per tool in `src/service/catalog.ts`, read by both the manifest and
 
 ---
 
-## 📁 Project structure
-
-```
-src/
-  config.ts                  env, HBAR/tinybar helpers, CAIP-2 network, ipv4-first DNS
-  x402.ts                    v2 type re-exports, X-PAYMENT codec, _meta keys
-  facilitator.ts             HTTPFacilitatorClient → Blocky402 (verify/settle/supported)
-  hedera.ts                  client, HCS topic + message, funded account creation
-  index.ts                   service entrypoint
-
-  service/
-    catalog.ts               every tool: title, category, params, pricing — single source of truth
-    manifest.ts              /.well-known/x402 document, built from the catalog
-    http/routes/             health · manifest · mcp · providers · onboard
-    mcp/tools/               discover · infer · openai · hedera · price · external · graph · compute
-    payments/paid-tool.ts    registerPaidTool: 402 → verify → run → settle → HCS audit
-    capabilities/            the paid work itself (NIM, mirror node, CoinGecko, Graph, DoH…)
-    audit/hcs.ts             settlement receipts → HCS
-    compute/
-      types.ts               ComputeProvider contract
-      registry.ts            routing, marketplace view, live inventory
-      leases.ts              lease lifecycle, metering, ticks, reaper
-      suppliers.ts           allowlist, registration, earnings
-      payouts.ts             supplier payout TransferTransaction + receipt
-      directory.ts           researched third-party providers + cost basis
-      providers/local.ts     container runtime on the host
-      providers/remote.ts    the five-endpoint contract any supplier implements
-
-  client/index.ts            AgenciaClient — discovery + 402 + signing + budget caps
-  agent/
-    goal.ts                  autonomous: buys its reasoning, picks its own tools
-    lease.ts                 full compute lease lifecycle
-    run.ts                   single paid call, end to end
-    wallet.ts · identity.ts · discover.ts · stream.ts
-
-scripts/
-  onboard.ts                 zero-to-paid: wallet + first real call
-  supplier.ts                the supplier node anyone can run
-  create-topic.ts · stream.ts
-
-web/                         Astro dashboard
-  src/pages/api/             call · compute · live (SSE) · stream (SSE) · onboard · wallet · audit
-  src/components/dashboard/  Shell · WalletMenu · panels/*
-  src/server/                pay-flow · live-run · free-call — the agent key never reaches the browser
-```
-
----
-
-## 🚀 Setup
-
-### 1. Accounts
-
-Create Hedera **testnet** accounts at [portal.hedera.com](https://portal.hedera.com) — or skip it and let the service issue one: `npm run onboard`. **ECDSA keys** are required (the x402 Hedera path assumes ECDSA).
-
-> **Hollow accounts:** if you funded an account by sending HBAR to a raw EVM address, the mirror node shows `"key": null` until it pays for one transaction of its own. The x402 flow never makes the agent the fee payer, so settlement fails with `INVALID_SIGNATURE` until you send one self-paid bootstrap transaction. Accounts issued by `/onboard` are created with `setECDSAKeyWithAlias` and don't have this problem.
-
-### 2. Install
-
-```bash
-cd hedera/agencia
-npm install
-cp .env.example .env
-```
-
-| Variable | What it does |
-|---|---|
-| `AGENCIA_OPERATOR_ID` / `_KEY` | service account — also signs HCS receipts and supplier payouts |
-| `AGENCIA_PAY_TO` | where payments land (defaults to the operator) |
-| `AGENT_ACCOUNT_ID` / `AGENT_PRIVATE_KEY` | the buying agent |
-| `AGENT_BUDGET_HBAR` / `AGENT_MAX_PAYMENT_HBAR` | spend caps enforced before a payment is built |
-| `NVIDIA_API_KEY` | powers `infer` via NVIDIA NIM |
-| `OPENAI_API_KEY` | optional — powers `infer_openai` |
-| `BLOCKY402_URL` | defaults to `https://api.testnet.blocky402.com` (testnet is open) |
-| `GRAPH_API_KEY` | optional — query a bare subgraph id instead of a full URL |
-| `COMPUTE_PROVIDERS` | `local` and/or remote provider ids |
-| `COMPUTE_RATE_PER_SECOND_HBAR` · `COMPUTE_OPEN_FEE_HBAR` | list price for compute |
-| `COMPUTE_TICK_SECONDS` · `COMPUTE_MAX_LEASE_SECONDS` | metering interval and hard ceiling |
-| `COMPUTE_MAX_CPU` · `COMPUTE_MAX_MEM_MB` · `COMPUTE_IMAGE` | sandbox limits and base image |
-| `COMPUTE_ADMIN_TOKEN` | required to allowlist suppliers |
-| `COMPUTE_SUPPLIER_SHARE_PCT` | supplier's cut of each lease (default 70) |
-| `ONBOARD_ENABLED` · `ONBOARD_FUND_HBAR` · `ONBOARD_MAX_PER_HOUR` | wallet issuance |
-
-### 3. Create the HCS topics
-
-```bash
-npm run create-topic           # -> AGENCIA_HCS_TOPIC_ID      (audit trail)
-npm run create-topic identity  # -> AGENT_IDENTITY_TOPIC_ID   (HCS-14 agent profile)
-npm run create-topic registry  # -> AGENCIA_REGISTRY_TOPIC_ID (on-chain service discovery)
-```
-
-### 4. Run
-
-```bash
-npm run start                              # the x402 service on :3022
-npm run onboard                            # wallet + one real paid call
-npm run find                               # find services on-chain and buy from one
-npm run goal "what is HBAR worth?"         # autonomous agent picks its own tools
-npm run lease 30 2                         # rent hardware, exec, tick, close
-npm run supplier                           # offer your machine to the marketplace
-cd web && npm install && npm run dev       # dashboard on :4321
-```
-
-Verify any settlement on the audit topic:
-
-```bash
-curl "https://testnet.mirrornode.hedera.com/api/v1/topics/<AGENCIA_HCS_TOPIC_ID>/messages"
-```
-
----
-
-## ☁️ Deploy — the service runs on Cloudflare Workers
+## Deploy — the service runs on Cloudflare Workers
 
 The x402 service is deployed at the **edge**, with no Node runtime anywhere in the request path:
 
@@ -505,11 +395,9 @@ cloudflared tunnel --url http://localhost:3022     # expose the supplier-backed 
 
 Verified end to end: a lease opened **through** `agencia.…workers.dev`, a command run on the rented box (`aarch64`), closed, settled with HCS receipt `#55`. With no origin attached the edge answers compute calls with a **pending** status and takes no payment — never "unknown tool".
 
-**Known edge difference:** CoinGecko returns `403` to Cloudflare egress, so `hbar_price` / `crypto_price` fail on the deployed Worker while working locally. `hedera_network` exposes the same HBAR/USD rate straight from consensus and is unaffected.
-
 ---
 
-## 🔒 Security & trust
+## Security & trust
 
 The agent's private key never reaches a browser — the dashboard proxies the whole pay flow through its own backend. Budget caps are checked **before** a transaction is built. Sandboxes run non-root with dropped capabilities, a read-only rootfs, and CPU/memory/pid/wall-clock ceilings; orphaned containers are swept on boot. Wallet issuance is testnet-only and rate-limited, and issued keys are returned once and never stored. Every settled call and every supplier payout lands on an append-only HCS topic that anyone can read.
 
@@ -518,43 +406,9 @@ The agent's private key never reaches a browser — the dashboard proxies the wh
 - **Secrets are never bundled.** Server code reads `process.env` only and never touches `import.meta.env` — referencing it makes Vite materialise the whole loaded `.env` into the built server chunk, baking real keys into an artifact that ships wherever it goes. Local values reach `process.env` via `loadEnv` in `astro.config.mjs`. A scan of all 2,382 build files finds no secret value.
 - **Spend is capped cumulatively, not per call.** The dashboard signs with a server-side key, so every visitor spends *your* HBAR. `AGENT_BUDGET_HBAR` is now a running hourly total, not a per-call ceiling — without that, unlimited cheap calls drain the wallet while each one passes the check. On serverless this lives in one instance's memory and resets on a cold start, so it limits a burst, not a determined attacker: **keep the hot wallet small and treat it as a float, not a treasury.**
 
-**Known gap:** leased sandboxes currently have unrestricted network egress (the box needs to reach the service to pay for inference from inside). Locking that to an allowlist is the next security task.
-
 ---
 
-## ✅ Status
-
-| Area | Status |
-|---|---|
-| Service + dashboard typecheck | ✅ `tsc --noEmit` and `astro check` clean |
-| **Deployed on Cloudflare Workers** | ✅ live — paid call + HCS receipt `#51` settled from the edge, 516 KiB gzipped, 89 ms startup |
-| HCS receipts from Workers (gRPC-web) | ✅ live — receipt `#50` written by the Worker itself |
-| `hbar_price` / `crypto_price` on Workers | 🟡 CoinGecko 403s Cloudflare egress — works locally, needs an API key or a different source |
-| **Full x402 paid round trip** | ✅ **live on testnet** — verify + settle + on-chain submit |
-| `infer` (NVIDIA NIM) · `infer_openai` | ✅ live — real paid completions settled |
-| Data tools (`hedera_*`, `*_price`, `web_read`, `dns_lookup`, `github_repo`) | ✅ tested against live upstreams |
-| **Live subgraph data through the gateway** | ✅ live — Uniswap V3 subgraph at block `25968230`, 23 entities introspected |
-| **`graph_analyze` — Graph data computed on rented hardware** | ✅ live — 10 pools analysed on a leased container, HCS receipt `#58`, lease closed |
-| `graph_ask` · `graph_query` · `graph_schema` | ✅ live against the gateway with `GRAPH_API_KEY` |
-| **Compute lease → exec → tick → end** | ✅ live — e.g. HCS receipts `#31`, `#32`, container reaped on close |
-| **Supplier payout** | ✅ live — 70/30 split paid on-chain with its own HCS receipt |
-| **On-chain service discovery (HCS registry)** | ✅ live — agent found the service from a topic id alone and paid it, HCS receipt `#56` |
-| **Autonomous goal agent** | ✅ live — 5 settlements in one run, tools chosen by the model |
-| **Wallet issuance → first paid call** | ✅ live — fresh account funded and paying on its first request |
-| Streamed payments (auto-tick) | ✅ live — consecutive HCS receipts, box reaped when payments stop |
-| Scheduled Transactions | ✅ live — real `ScheduleCreateTransaction`s with HashScan links |
-| **Lease persistence + wallet ownership** | ✅ live — lease resumed across a service restart, exec still worked, foreign access refused |
-| **Ask-before-install in the sandbox** | ✅ live — consent gate returns the command first; `jq-1.8.2` installed and ran after `confirm: true` |
-| **Identity per wallet** (optional email) | ✅ `GET`/`POST /identity/:accountId`, spend and lease counts tracked per account |
-| **Compute through the deployed Worker** | ✅ live — lease + exec + close via the edge, paid at the edge, HCS receipt `#55` |
-| **Hardware selection** | ✅ runtime image, vCPU, memory, writable mode and a named provider (or cheapest-available) are all caller-selectable |
-| Port publishing / preview URLs for leases | ⬜ not started — a leased box can't serve HTTP to its renter yet |
-| Multi-agent negotiation (A2A / ACP) | ⬜ not started — price is fixed by the seller |
-| HTS tokens / custom fee schedules | 🟡 `asset` flows through the v2 requirements; only the HBAR (`0.0.0`) path is wired |
-
----
-
-## 📄 License
+## License
 
 No license file is committed yet — treat this repo as **all rights reserved** until one is added.
 

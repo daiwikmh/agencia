@@ -110,9 +110,21 @@ function spendGuard(quotedHbar: number): string | null {
   return null;
 }
 
+/**
+ * Spend controls are built from the 402 challenge, not from config.
+ *
+ * The allowedAssets entry has to match the network id the service quotes in
+ * ("hedera:testnet"). Deriving it from HEDERA_NETWORK meant any deployment
+ * that left that var unset fell back to "hedera-testnet" and had every payment
+ * rejected by spendControls — a silent mismatch that only shows up at the
+ * moment of paying.
+ */
 let sdkClient: x402Client | null = null;
-export function paymentClient(): x402Client {
-  if (sdkClient) return sdkClient;
+let sdkKey = "";
+
+export function paymentClient(network: string, asset: string): x402Client {
+  const key = `${network}|${asset}`;
+  if (sdkClient && sdkKey === key) return sdkClient;
   if (!serverConfig.agent.accountId || !serverConfig.agent.privateKey) {
     throw new Error("AGENT_ACCOUNT_ID and AGENT_PRIVATE_KEY are not configured");
   }
@@ -125,12 +137,13 @@ export function paymentClient(): x402Client {
     .setSpendControls({
       allowedAssets: [
         {
-          network: serverConfig.network as `${string}:${string}`,
-          asset: "0.0.0",
+          network: network as `${string}:${string}`,
+          asset,
           maxAmountPerPayment: "100000000",
         },
       ],
     });
+  sdkKey = key;
   return sdkClient;
 }
 
@@ -189,7 +202,7 @@ export async function runPaidCall(
 
     let token: string;
     try {
-      const payload = await paymentClient().createPaymentPayload(challenge);
+      const payload = await paymentClient(req.network, req.asset).createPaymentPayload(challenge);
       token = Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
       steps.push("built partially-signed TransferTransaction (X-PAYMENT)");
     } catch (err) {

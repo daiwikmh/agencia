@@ -115,7 +115,7 @@ class PaidSession {
       throw new Error(`quote ${quotedHbar} ℏ exceeds the ${maxHbar} ℏ cap`);
     }
 
-    const payload = await paymentClient().createPaymentPayload(challenge);
+    const payload = await paymentClient(req.network, req.asset).createPaymentPayload(challenge);
     const token = Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
     emit({
       phase: "sign",
